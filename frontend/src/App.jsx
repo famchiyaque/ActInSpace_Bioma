@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import './App.css'
+import MexicoMap from './components/Map/MexicoMap'
 
 function App() {
-  const [activeView, setActiveView] = useState('map')
+  const [activeView, setActiveView] = useState('landing')
+  const [selectedState, setSelectedState] = useState(null)
+  const [selectedProject, setSelectedProject] = useState(null)
   const [activeRiskFilters, setActiveRiskFilters] = useState({
     high: true,
     medium: true,
@@ -21,25 +24,45 @@ function App() {
     }))
   }
 
+  const handleStateSelect = (state) => {
+    setSelectedState(state)
+  }
+
+  const handleProjectSelect = (project) => {
+    setSelectedProject(project)
+    showView('project')
+  }
+
   return (
     <div className="app">
       <header>
         <div className="header-content">
           <div>
-            <h1>Environmental Monitoring Platform</h1>
-            <div className="subtitle">Transparent Public Oversight</div>
+            <h1>Bioma - Monitoreo Ambiental</h1>
+            <div className="subtitle">Supervisión Transparente de Proyectos</div>
           </div>
           <nav>
-            <a href="#" data-view="map" className={activeView === 'map' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('map'); }}>Map</a>
-            <a href="#" data-view="project" className={activeView === 'project' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('project'); }}>Project</a>
-            <a href="#" data-view="company" className={activeView === 'company' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('company'); }}>Company</a>
-            <a href="#" data-view="region" className={activeView === 'region' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('region'); }}>Region</a>
-            <a href="#" data-view="report" className={activeView === 'report' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('report'); }}>Report</a>
+            <a href="#" data-view="landing" className={activeView === 'landing' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('landing'); setSelectedState(null); }}>Mapa</a>
+            <a href="#" data-view="project" className={activeView === 'project' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('project'); }}>Proyecto</a>
+            <a href="#" data-view="company" className={activeView === 'company' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('company'); }}>Empresa</a>
+            <a href="#" data-view="region" className={activeView === 'region' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('region'); }}>Región</a>
+            <a href="#" data-view="report" className={activeView === 'report' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('report'); }}>Reporte</a>
           </nav>
         </div>
       </header>
 
-      {/* Map View */}
+      {/* Landing - Mexico Map View */}
+      <div className={`view ${activeView === 'landing' ? 'active' : ''}`}>
+        <div className="map-view-container">
+          <MexicoMap 
+            onStateSelect={handleStateSelect}
+            onProjectSelect={handleProjectSelect}
+            selectedState={selectedState}
+          />
+        </div>
+      </div>
+
+      {/* Old Map View (keeping for reference) */}
       <div className={`view ${activeView === 'map' ? 'active' : ''}`}>
         <div className="map-container">
           <aside className="sidebar">
@@ -112,31 +135,31 @@ function App() {
       <div className={`view ${activeView === 'project' ? 'active' : ''}`}>
         <div className="project-detail">
           <div className="breadcrumb">
-            <a href="#" onClick={(e) => { e.preventDefault(); showView('map'); }}>Map</a> / <a href="#" onClick={(e) => { e.preventDefault(); showView('region'); }}>Antofagasta Region</a> / Copper Mining Expansion - Río Verde
+            <a href="#" onClick={(e) => { e.preventDefault(); showView('landing'); }}>Mapa</a> / {selectedState && <><a href="#" onClick={(e) => { e.preventDefault(); showView('landing'); }}>{selectedState.name}</a> / </>}{selectedProject ? selectedProject.name : 'Copper Mining Expansion - Río Verde'}
           </div>
           
           <div className="project-header">
             <div className="project-title">
-              <h2>Copper Mining Expansion - Río Verde</h2>
+              <h2>{selectedProject ? selectedProject.name : 'Copper Mining Expansion - Río Verde'}</h2>
               <div className="project-meta">
                 <div className="meta-item">
-                  <span className="meta-label">Company</span>
-                  <span className="meta-value"><a href="#" onClick={(e) => { e.preventDefault(); showView('company'); }} style={{color: 'var(--earth-dark)', textDecoration: 'none'}}>Minera del Norte S.A.</a></span>
+                  <span className="meta-label">Empresa</span>
+                  <span className="meta-value"><a href="#" onClick={(e) => { e.preventDefault(); showView('company'); }} style={{color: 'var(--earth-dark)', textDecoration: 'none'}}>{selectedProject ? selectedProject.company : 'Minera del Norte S.A.'}</a></span>
                 </div>
                 <div className="meta-item">
-                  <span className="meta-label">Region</span>
-                  <span className="meta-value">Antofagasta Region</span>
+                  <span className="meta-label">Estado</span>
+                  <span className="meta-value">{selectedProject ? selectedProject.state : 'Antofagasta Region'}</span>
                 </div>
                 <div className="meta-item">
-                  <span className="meta-label">Monitoring Since</span>
-                  <span className="meta-value">March 2024</span>
+                  <span className="meta-label">Monitoreo Desde</span>
+                  <span className="meta-value">{selectedProject ? selectedProject.startDate : 'March 2024'}</span>
                 </div>
               </div>
             </div>
             
-            <div className="risk-indicator high">
-              <div className="risk-label">Current Status</div>
-              <div className="risk-level">HIGH RISK</div>
+            <div className={`risk-indicator ${selectedProject ? selectedProject.compliance : 'high'}`}>
+              <div className="risk-label">Estado Actual</div>
+              <div className="risk-level">{selectedProject ? (selectedProject.compliance === 'compliant' ? 'CUMPLIMIENTO' : selectedProject.compliance === 'warning' ? 'ADVERTENCIA' : 'VIOLACIÓN') : 'HIGH RISK'}</div>
             </div>
           </div>
           

@@ -107,6 +107,13 @@ nav a.active {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Landing Map View */
+.map-view-container {
+  width: 100%;
+  height: calc(100vh - 88px);
+  position: relative;
+}
+
 /* Map View */
 .map-container {
   display: grid;
@@ -761,10 +768,21 @@ nav a.active {
   line-height: 1.7;
 }
 
+/* Compliance status colors */
+.risk-indicator.compliant {
+  background: rgba(107, 158, 120, 0.1);
+  border-color: var(--alert-low);
+  color: var(--alert-low);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .map-container {
     grid-template-columns: 1fr;
+  }
+  
+  .map-view-container {
+    height: calc(100vh - 120px);
   }
   
   .content-grid {
@@ -777,5 +795,14 @@ nav a.active {
   
   .region-header {
     grid-template-columns: 1fr;
+  }
+  
+  header nav {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  header nav a {
+    font-size: 0.85rem;
   }
 }
