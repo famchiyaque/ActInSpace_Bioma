@@ -193,11 +193,18 @@ const MexicoMap = ({ onStateSelect, onProjectSelect, selectedState }) => {
           
           // Get bounds of clicked state
           const bounds = new mapboxgl.LngLatBounds();
-          
-          if (feature.geometry.type === 'Polygon') {
-            feature.geometry.coordinates[0].forEach(coord => {
-              bounds.extend(coord);
+          const addPolygonToBounds = (polygonCoords) => {
+            if (!Array.isArray(polygonCoords)) return;
+            polygonCoords.forEach(ring => {
+              if (!Array.isArray(ring)) return;
+              ring.forEach(coord => bounds.extend(coord));
             });
+          };
+
+          if (feature.geometry.type === 'Polygon') {
+            addPolygonToBounds(feature.geometry.coordinates);
+          } else if (feature.geometry.type === 'MultiPolygon') {
+            feature.geometry.coordinates.forEach(polygon => addPolygonToBounds(polygon));
           }
 
           // Zoom to state
