@@ -2,10 +2,45 @@ import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mexicoStates from '../../data/mexico-states.geojson?url';
-import { getProjectsByState } from '../../data/mock-projects';
+import { getProjectsByState, getStateProjectSummary } from '../../data/mock-projects';
 
 // Set your Mapbox token here
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiYmlvbWEtbWFwIiwiYSI6ImNtNWRlZjBkZjBhcWYya3M3NzVhZDJhZWYifQ.placeholder';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+const stateCodeByNumeric = {
+  1: 'AGS',
+  2: 'BC',
+  3: 'BCS',
+  4: 'CAM',
+  5: 'COA',
+  6: 'COL',
+  7: 'CHS',
+  8: 'CHH',
+  9: 'CDMX',
+  10: 'DUR',
+  11: 'GUA',
+  12: 'GRO',
+  13: 'HID',
+  14: 'JAL',
+  15: 'MEX',
+  16: 'MIC',
+  17: 'MOR',
+  18: 'NAY',
+  19: 'NL',
+  20: 'OAX',
+  21: 'PUE',
+  22: 'QRO',
+  23: 'QROO',
+  24: 'SLP',
+  25: 'SIN',
+  26: 'SON',
+  27: 'TAB',
+  28: 'TAM',
+  29: 'TLA',
+  30: 'VER',
+  31: 'YUC',
+  32: 'ZAC'
+};
 
 const MexicoMap = ({ onStateSelect, onProjectSelect, selectedState }) => {
   const mapContainer = useRef(null);
@@ -33,7 +68,8 @@ const MexicoMap = ({ onStateSelect, onProjectSelect, selectedState }) => {
         .then(data => {
           map.current.addSource('mexico-states', {
             type: 'geojson',
-            data: data
+            data: data,
+            promoteId: 'state_code'
           });
 
           addStateLayers();
@@ -90,6 +126,11 @@ const MexicoMap = ({ onStateSelect, onProjectSelect, selectedState }) => {
 
       // Hover effect
       let hoveredStateId = null;
+      const hoverPopup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        offset: [0, -6]
+      });
 
       map.current.on('mousemove', 'states-fill', (e) => {
         if (e.features.length > 0) {
@@ -105,6 +146,28 @@ const MexicoMap = ({ onStateSelect, onProjectSelect, selectedState }) => {
             { hover: true }
           );
           map.current.getCanvas().style.cursor = 'pointer';
+
+          const feature = e.features[0];
+          const rawStateCode = feature.properties.state_code;
+          const stateCode = stateCodeByNumeric[rawStateCode] || null;
+          const stateName = feature.properties.state_name;
+          const { activeCount, finishedCount, total } = getStateProjectSummary(stateCode);
+
+          hoverPopup
+            .setLngLat(e.lngLat)
+            .setHTML(`
+              <div style="font-family: var(--font-body); padding: 0.5rem 0.6rem;">
+                <div style="font-family: var(--font-display); font-size: 0.95rem; color: var(--earth-dark); margin-bottom: 0.35rem;">
+                  ${stateName}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--ink-light);">
+                  <div><strong>En construcción:</strong> ${activeCount}</div>
+                  <div><strong>Finalizados:</strong> ${finishedCount}</div>
+                  <div><strong>Total:</strong> ${total}</div>
+                </div>
+              </div>
+            `)
+            .addTo(map.current);
         }
       });
 
@@ -117,14 +180,16 @@ const MexicoMap = ({ onStateSelect, onProjectSelect, selectedState }) => {
         }
         hoveredStateId = null;
         map.current.getCanvas().style.cursor = '';
+        hoverPopup.remove();
       });
 
       // Click handler for states
       map.current.on('click', 'states-fill', (e) => {
         if (e.features.length > 0) {
           const feature = e.features[0];
-          const stateCode = feature.properties.code;
-          const stateName = feature.properties.name;
+          const rawStateCode = feature.properties.state_code;
+          const stateCode = stateCodeByNumeric[rawStateCode] || null;
+          const stateName = feature.properties.state_name;
           
           // Get bounds of clicked state
           const bounds = new mapboxgl.LngLatBounds();

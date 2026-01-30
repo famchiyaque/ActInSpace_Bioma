@@ -36,7 +36,7 @@ export const mockProjects = {
       name: 'Industrial Park Development',
       state: 'Nuevo León',
       stateCode: 'NL',
-      status: 'active',
+      status: 'finished',
       compliance: 'compliant',
       company: 'Desarrollo Industrial del Norte',
       startDate: '2023-11-20',
@@ -116,7 +116,7 @@ export const mockProjects = {
       name: 'Residential Complex - Santa Fe',
       state: 'Ciudad de México',
       stateCode: 'CDMX',
-      status: 'active',
+      status: 'finished',
       compliance: 'compliant',
       company: 'Desarrollos Urbanos SA',
       startDate: '2024-02-10',
@@ -178,7 +178,7 @@ export const mockProjects = {
       name: 'Water Treatment Plant',
       state: 'Jalisco',
       stateCode: 'JAL',
-      status: 'active',
+      status: 'finished',
       compliance: 'compliant',
       company: 'Servicios Ambientales de Jalisco',
       startDate: '2024-01-05',
@@ -291,6 +291,18 @@ export const mockProjects = {
 // Helper function to get projects by state code
 export const getProjectsByState = (stateCode) => {
   return mockProjects[stateCode] || [];
+};
+
+// Helper function to get project counts by state
+export const getStateProjectSummary = (stateCode) => {
+  const projects = getProjectsByState(stateCode);
+  const activeCount = projects.filter(project => project.status === 'active').length;
+  const finishedCount = projects.filter(project => project.status === 'finished').length;
+  return {
+    activeCount,
+    finishedCount,
+    total: projects.length
+  };
 };
 
 // Helper function to get all projects
