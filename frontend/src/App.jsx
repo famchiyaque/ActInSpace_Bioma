@@ -1,9 +1,174 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import './App.css'
 import MexicoMap from './components/Map/MexicoMap'
 import ProjectDetailMap from './components/Map/ProjectDetailMap'
 import { getProjectById } from './data/mock-projects'
 import { projectsApi, transformProjectData } from './services/api'
+import { predictRisk } from './utils/riskModel'
+
+// Project Detail Content Component with AI Risk Integration
+function ProjectDetailContent({ project, getRiskLabel }) {
+  // Calculate AI risk prediction for current state (day 0)
+  const aiRiskPrediction = useMemo(() => {
+    return predictRisk(project, 0)
+  }, [project])
+
+  const riskIcons = {
+    low: '✅',
+    medium: '⚠️',
+    high: '🔶',
+    critical: '🚨'
+  }
+
+  return (
+    <>
+      <div className="project-detail-header">
+        <h1 className="project-title">{project.name}</h1>
+        <p className="project-subtitle">
+          {project.state} · {project.category}
+        </p>
+      </div>
+      <div className="project-detail-grid">
+        <div className="project-detail-map">
+          <ProjectDetailMap project={project} />
+        </div>
+        <div className="project-detail-kpis">
+          {/* AI Risk Score Card - Primary */}
+          <div className="kpi-card kpi-card-ai" style={{
+            background: `linear-gradient(135deg, ${aiRiskPrediction.riskLevel.color}15 0%, ${aiRiskPrediction.riskLevel.color}05 100%)`,
+            borderLeft: `4px solid ${aiRiskPrediction.riskLevel.color}`
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1rem' }}>🤖</span>
+                AI Risk Score
+              </span>
+              <span style={{ fontSize: '1.2rem' }}>{riskIcons[aiRiskPrediction.riskLevel.level]}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <span className="kpi-value" style={{ 
+                fontSize: '2rem', 
+                fontWeight: '700',
+                color: aiRiskPrediction.riskLevel.color 
+              }}>
+                {aiRiskPrediction.riskScore}
+              </span>
+              <span style={{ 
+                fontSize: '0.85rem', 
+                color: aiRiskPrediction.riskLevel.color,
+                fontWeight: '600'
+              }}>
+                / 100 — {aiRiskPrediction.riskLevel.label}
+              </span>
+            </div>
+            <div style={{ 
+              marginTop: '0.75rem', 
+              fontSize: '0.7rem', 
+              opacity: 0.7,
+              display: 'flex',
+              gap: '1rem'
+            }}>
+              <span>Tipo: {aiRiskPrediction.workType.name}</span>
+              <span>Expansión: +{((aiRiskPrediction.expansionFactor - 1) * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+
+          {/* Original Compliance Status */}
+          <div className="kpi-card">
+            <span className="kpi-label">Compliance Status</span>
+            <span className={`kpi-value risk-${project.riskState}`}>
+              {getRiskLabel(project.riskState)}
+            </span>
+          </div>
+
+          <div className="kpi-card">
+            <span className="kpi-label">Affected area (vegetation loss)</span>
+            <span className="kpi-value">
+              {project.vegetationLoss == null ? 'N/A' : `${project.vegetationLoss} ha`}
+            </span>
+          </div>
+          <div className="kpi-card">
+            <span className="kpi-label">Carbon footprint</span>
+            <span className="kpi-value">
+              {project.carbonFootprint == null ? 'N/A' : `${project.carbonFootprint} t CO2e`}
+            </span>
+          </div>
+          <div className="kpi-card">
+            <span className="kpi-label">Last updated</span>
+            <span className="kpi-value">{project.lastUpdated}</span>
+          </div>
+
+          {/* AI Risk Variables Summary */}
+          <div className="kpi-card" style={{ gridColumn: '1 / -1' }}>
+            <span className="kpi-label" style={{ marginBottom: '0.75rem', display: 'block' }}>
+              📊 AI Risk Factors
+            </span>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+              gap: '0.5rem',
+              fontSize: '0.75rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem', background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                <span>🟡 Yellow Events</span>
+                <strong>{aiRiskPrediction.variables.yellowZoneEvents}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem', background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                <span>🔴 Red Events</span>
+                <strong>{aiRiskPrediction.variables.redZoneEvents}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem', background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                <span>📈 Expansion</span>
+                <strong>{aiRiskPrediction.variables.expansionVelocity} m²/d</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem', background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                <span>🛡️ Sensitive Zone</span>
+                <strong>{(aiRiskPrediction.variables.sensitiveZoneProximity * 100).toFixed(0)}%</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem', background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                <span>📋 Historical Risk</span>
+                <strong>{(aiRiskPrediction.variables.historicalRisk * 100).toFixed(0)}%</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem', background: 'rgba(0,0,0,0.03)', borderRadius: '4px' }}>
+                <span>📆 Duration</span>
+                <strong>{aiRiskPrediction.variables.projectDuration} days</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="project-detail-context">
+        <div className="context-card">
+          <h3 className="context-title">Region description</h3>
+          <p className="context-text">{project.regionDescription}</p>
+        </div>
+        <div className="context-card">
+          <h3 className="context-title">Company description</h3>
+          <p className="context-text">{project.companyDescription}</p>
+        </div>
+        {/* AI Risk Interpretation Card */}
+        <div className="context-card" style={{
+          background: `linear-gradient(135deg, ${aiRiskPrediction.riskLevel.color}10 0%, transparent 100%)`,
+          borderLeft: `4px solid ${aiRiskPrediction.riskLevel.color}`
+        }}>
+          <h3 className="context-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🤖</span> AI Risk Assessment
+          </h3>
+          <p className="context-text">
+            {aiRiskPrediction.riskScore < 30 && 
+              'The project maintains a work pace within permitted parameters. Routine monitoring is recommended. Current indicators show low probability of environmental violations.'}
+            {aiRiskPrediction.riskScore >= 30 && aiRiskPrediction.riskScore < 60 && 
+              'Indicators of possible expansion outside the authorized area are detected. Preventive inspection is recommended. The project shows a moderate trend that requires attention.'}
+            {aiRiskPrediction.riskScore >= 60 && aiRiskPrediction.riskScore < 80 && 
+              'High risk of limit violation. The project shows significant expansive tendency. Immediate intervention is required to prevent environmental damage.'}
+            {aiRiskPrediction.riskScore >= 80 && 
+              'Critical risk of environmental damage. Multiple indicators at alert levels. Urgent corrective action is necessary. Consider suspension of activities until compliance is verified.'}
+          </p>
+        </div>
+      </div>
+    </>
+  )
+}
 
 function App() {
   const [activeView, setActiveView] = useState('landing')
@@ -363,53 +528,10 @@ function App() {
                 </button>
               </div>
             ) : selectedProject ? (
-              <>
-                <div className="project-detail-header">
-                  <h1 className="project-title">{selectedProject.name}</h1>
-                  <p className="project-subtitle">
-                    {selectedProject.state} · {selectedProject.category}
-                  </p>
-                </div>
-                <div className="project-detail-grid">
-                  <div className="project-detail-map">
-                    <ProjectDetailMap project={selectedProject} />
-                  </div>
-                  <div className="project-detail-kpis">
-                    <div className="kpi-card">
-                      <span className="kpi-label">Risk status</span>
-                      <span className={`kpi-value risk-${selectedProject.riskState}`}>
-                        {getRiskLabel(selectedProject.riskState)}
-                      </span>
-                    </div>
-                    <div className="kpi-card">
-                      <span className="kpi-label">Affected area (vegetation loss)</span>
-                      <span className="kpi-value">
-                        {selectedProject.vegetationLoss == null ? 'N/A' : `${selectedProject.vegetationLoss} ha`}
-                      </span>
-                    </div>
-                    <div className="kpi-card">
-                      <span className="kpi-label">Carbon footprint</span>
-                      <span className="kpi-value">
-                        {selectedProject.carbonFootprint == null ? 'N/A' : `${selectedProject.carbonFootprint} t CO2e`}
-                      </span>
-                    </div>
-                    <div className="kpi-card">
-                      <span className="kpi-label">Last updated</span>
-                      <span className="kpi-value">{selectedProject.lastUpdated}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="project-detail-context">
-                  <div className="context-card">
-                    <h3 className="context-title">Region description</h3>
-                    <p className="context-text">{selectedProject.regionDescription}</p>
-                  </div>
-                  <div className="context-card">
-                    <h3 className="context-title">Company description</h3>
-                    <p className="context-text">{selectedProject.companyDescription}</p>
-                  </div>
-                </div>
-              </>
+              <ProjectDetailContent 
+                project={selectedProject} 
+                getRiskLabel={getRiskLabel}
+              />
             ) : (
               <div className="project-empty-state">
                 <h2>Select a project on the map</h2>
