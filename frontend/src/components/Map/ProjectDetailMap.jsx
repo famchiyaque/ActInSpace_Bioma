@@ -30,7 +30,8 @@ const getCentroid = (ring) => {
 }
 
 const buildScaledPolygon = (feature, scale) => {
-  const ring = ensureClosedRing(feature.geometry.coordinates[0] || [])
+  const ring = ensureClosedRing(feature.geometry?.coordinates?.[0] || [])
+  if (!ring.length) return null
   const [centerLng, centerLat] = getCentroid(ring)
   const scaled = ring.map(([lng, lat]) => [
     centerLng + (lng - centerLng) * scale,
@@ -78,9 +79,12 @@ const ProjectDetailMap = ({ project }) => {
 
     const mapInstance = mapRef.current
     const baseFeature = project.workZone
+    if (baseFeature.geometry?.type !== 'Polygon') return
+
     const bufferYellow = buildScaledPolygon(baseFeature, 1.1)
     const bufferRed = buildScaledPolygon(baseFeature, 1.2)
-    const ring = ensureClosedRing(baseFeature.geometry.coordinates[0] || [])
+    const ring = ensureClosedRing(baseFeature.geometry?.coordinates?.[0] || [])
+    if (!ring.length || !bufferYellow || !bufferRed) return
 
     const setSource = (id, data) => {
       const source = mapInstance.getSource(id)

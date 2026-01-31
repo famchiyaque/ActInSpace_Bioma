@@ -126,13 +126,21 @@ function App() {
   }
 
   const getRiskLabel = (riskState) => {
-    if (riskState === 'compliant') return 'En regla'
-    if (riskState === 'warning') return 'Advertencia'
-    if (riskState === 'violation') return 'Violación'
-    if (riskState === 'high') return 'Alto'
-    if (riskState === 'medium') return 'Medio'
-    if (riskState === 'low') return 'Bajo'
-    return riskState || 'Sin dato'
+    const normalized = (riskState || '')
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+
+    if (normalized === 'compliant') return 'Compliant'
+    if (normalized === 'warning' || normalized === 'advertencia') return 'Warning'
+    if (normalized === 'violation' || normalized === 'violacion') return 'Violation'
+    if (normalized === 'high' || normalized === 'alto') return 'High'
+    if (normalized === 'medium' || normalized === 'medio') return 'Medium'
+    if (normalized === 'low' || normalized === 'bajo') return 'Low'
+    if (!normalized || normalized === 'unknown') return 'No data'
+    return riskState
   }
 
   return (
@@ -334,7 +342,7 @@ function App() {
             {loadingProject ? (
               <div className="project-loading-state">
                 <div className="spinner" />
-                <h2>Cargando proyecto...</h2>
+                <h2>Loading project...</h2>
               </div>
             ) : projectError ? (
               <div className="project-error-state">
@@ -344,7 +352,7 @@ function App() {
                   className="btn btn-primary" 
                   onClick={() => window.location.hash = '#'}
                 >
-                  Volver al mapa
+                  Back to map
                 </button>
               </div>
             ) : selectedProject ? (
@@ -361,40 +369,44 @@ function App() {
                   </div>
                   <div className="project-detail-kpis">
                     <div className="kpi-card">
-                      <span className="kpi-label">Estado de riesgo</span>
+                      <span className="kpi-label">Risk status</span>
                       <span className={`kpi-value risk-${selectedProject.riskState}`}>
                         {getRiskLabel(selectedProject.riskState)}
                       </span>
                     </div>
                     <div className="kpi-card">
-                      <span className="kpi-label">Área afectada (pérdida de vegetación)</span>
-                      <span className="kpi-value">{selectedProject.vegetationLoss} ha</span>
+                      <span className="kpi-label">Affected area (vegetation loss)</span>
+                      <span className="kpi-value">
+                        {selectedProject.vegetationLoss == null ? 'N/A' : `${selectedProject.vegetationLoss} ha`}
+                      </span>
                     </div>
                     <div className="kpi-card">
-                      <span className="kpi-label">Huella de carbono</span>
-                      <span className="kpi-value">{selectedProject.carbonFootprint} t CO2e</span>
+                      <span className="kpi-label">Carbon footprint</span>
+                      <span className="kpi-value">
+                        {selectedProject.carbonFootprint == null ? 'N/A' : `${selectedProject.carbonFootprint} t CO2e`}
+                      </span>
                     </div>
                     <div className="kpi-card">
-                      <span className="kpi-label">Última actualización</span>
+                      <span className="kpi-label">Last updated</span>
                       <span className="kpi-value">{selectedProject.lastUpdated}</span>
                     </div>
                   </div>
                 </div>
                 <div className="project-detail-context">
                   <div className="context-card">
-                    <h3 className="context-title">Descripción regional</h3>
+                    <h3 className="context-title">Region description</h3>
                     <p className="context-text">{selectedProject.regionDescription}</p>
                   </div>
                   <div className="context-card">
-                    <h3 className="context-title">Descripción de la empresa</h3>
+                    <h3 className="context-title">Company description</h3>
                     <p className="context-text">{selectedProject.companyDescription}</p>
                   </div>
                 </div>
               </>
             ) : (
               <div className="project-empty-state">
-                <h2>Selecciona un proyecto en el mapa</h2>
-                <p>Haz clic en un punto del mapa para ver el detalle completo.</p>
+                <h2>Select a project on the map</h2>
+                <p>Click a marker to see full details.</p>
               </div>
             )}
           </div>

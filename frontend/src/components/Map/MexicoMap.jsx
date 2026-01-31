@@ -215,16 +215,33 @@ const MexicoMap = ({ onProjectSelect, selectedProject, onProjectClose, searchQue
     });
   }, [filteredProjects, mapLoaded, onProjectSelect]);
 
+  const normalizeStatus = (value) => (value || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+
   const getStatusColor = (compliance) => {
-    if (compliance === 'compliant') return '#6b9e78';
-    if (compliance === 'warning') return '#e09b3d';
-    return '#c84f3f';
+    const normalized = normalizeStatus(compliance);
+    if (normalized === 'compliant') return '#6b9e78';
+    if (normalized === 'warning' || normalized === 'advertencia') return '#e09b3d';
+    if (normalized === 'violation' || normalized === 'violacion') return '#c84f3f';
+    if (normalized === 'high' || normalized === 'alto') return '#c84f3f';
+    if (normalized === 'medium' || normalized === 'medio') return '#e09b3d';
+    if (normalized === 'low' || normalized === 'bajo') return '#6b9e78';
+    return '#9ca3af';
   };
 
   const getStatusText = (compliance) => {
-    if (compliance === 'compliant') return 'En Regla';
-    if (compliance === 'warning') return 'Advertencia';
-    return 'Violación';
+    const normalized = normalizeStatus(compliance);
+    if (normalized === 'compliant') return 'Compliant';
+    if (normalized === 'warning' || normalized === 'advertencia') return 'Warning';
+    if (normalized === 'violation' || normalized === 'violacion') return 'Violation';
+    if (normalized === 'high' || normalized === 'alto') return 'High';
+    if (normalized === 'medium' || normalized === 'medio') return 'Medium';
+    if (normalized === 'low' || normalized === 'bajo') return 'Low';
+    return 'No data';
   };
 
   return (
