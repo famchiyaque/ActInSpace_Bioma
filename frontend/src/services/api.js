@@ -6,7 +6,13 @@
 
 import { generateSyntheticPolygon } from '../utils/polygonGenerator';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// Determine API URL based on environment
+// - If running via ngrok or other tunnel (not localhost), use /api proxy
+// - If running locally, use direct connection to backend
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (isLocalhost ? 'http://localhost:8000' : '/api');
 
 // Default coordinates for Mexican states/regions when none are provided
 const REGION_DEFAULT_COORDINATES = {
