@@ -329,6 +329,16 @@ function App() {
                     </div>
                   </div>
                 </div>
+                <div className="project-detail-context">
+                  <div className="context-card">
+                    <h3 className="context-title">Descripción regional</h3>
+                    <p className="context-text">{selectedProject.regionDescription}</p>
+                  </div>
+                  <div className="context-card">
+                    <h3 className="context-title">Descripción de la empresa</h3>
+                    <p className="context-text">{selectedProject.companyDescription}</p>
+                  </div>
+                </div>
               </>
             ) : (
               <div className="project-empty-state">

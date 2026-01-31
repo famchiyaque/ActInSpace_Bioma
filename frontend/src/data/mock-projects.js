@@ -17,6 +17,8 @@ export const mockProjects = {
       vegetationLoss: 23,
       carbonFootprint: 1820,
       lastUpdated: '15 Ene 2025',
+      regionDescription: 'El corredor norte de Monterrey combina áreas industriales y zonas residenciales en expansión, con presión creciente sobre cauces y laderas cercanas.',
+      companyDescription: 'Constructora del Norte S.A. opera proyectos viales en el noreste con enfoque en infraestructura de alta demanda y planes de mitigación ambiental.',
       description: 'Highway expansion project in northern Monterrey metropolitan area',
       imageUrl: 'https://images.unsplash.com/photo-1621544402532-c62fe9b9f996?w=600',
       workZone: {
@@ -53,6 +55,8 @@ export const mockProjects = {
       vegetationLoss: 8,
       carbonFootprint: 740,
       lastUpdated: '02 Dic 2024',
+      regionDescription: 'Zona periurbana de Apodaca con crecimiento industrial acelerado y necesidad de monitoreo de escorrentías y cobertura vegetal.',
+      companyDescription: 'Desarrollo Industrial del Norte impulsa parques industriales con programas de reforestación y eficiencia energética.',
       description: 'New industrial park near Apodaca',
       imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600',
       workZone: {
@@ -92,6 +96,8 @@ export const mockProjects = {
       vegetationLoss: 45,
       carbonFootprint: 2650,
       lastUpdated: '20 Ene 2025',
+      regionDescription: 'El sur de la ciudad concentra zonas arqueológicas y suelos de conservación con alta sensibilidad a cambios de uso de suelo.',
+      companyDescription: 'Metro CDMX Construcciones ejecuta obras de transporte masivo con protocolos estrictos de control de impactos en comunidades urbanas.',
       description: 'Extension of Metro Line 12 through southern districts',
       imageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600',
       workZone: {
@@ -146,6 +152,8 @@ export const mockProjects = {
       vegetationLoss: 12,
       carbonFootprint: 980,
       lastUpdated: '28 Dic 2024',
+      regionDescription: 'Santa Fe es un polo urbano con presión sobre barrancas y áreas verdes, con requerimientos de control de escurrimientos.',
+      companyDescription: 'Desarrollos Urbanos SA se especializa en proyectos residenciales de alta densidad con certificaciones ambientales.',
       description: 'High-rise residential development in Santa Fe',
       imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600',
       workZone: {
@@ -185,6 +193,8 @@ export const mockProjects = {
       vegetationLoss: 30,
       carbonFootprint: 2100,
       lastUpdated: '09 Ene 2025',
+      regionDescription: 'La zona aeroportuaria de Guadalajara combina áreas logísticas y agrícolas con presencia de humedales estacionales.',
+      companyDescription: 'Aeropuertos y Servicios desarrolla infraestructura aeroportuaria con programas de reducción de emisiones.',
       description: 'Expansion of international airport facilities',
       imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600',
       workZone: {
@@ -221,6 +231,8 @@ export const mockProjects = {
       vegetationLoss: 6,
       carbonFootprint: 520,
       lastUpdated: '18 Dic 2024',
+      regionDescription: 'Área metropolitana con retos de calidad de agua y manejo de residuos, ideal para proyectos de saneamiento.',
+      companyDescription: 'Servicios Ambientales de Jalisco ejecuta proyectos de tratamiento con enfoque en circularidad y eficiencia hídrica.',
       description: 'New water treatment facility for metropolitan area',
       imageUrl: 'https://images.unsplash.com/photo-1581093458791-9d42e3c95e1d?w=600',
       workZone: {
@@ -260,6 +272,8 @@ export const mockProjects = {
       vegetationLoss: 52,
       carbonFootprint: 3100,
       lastUpdated: '12 Ene 2025',
+      regionDescription: 'La costa de Veracruz presenta manglares y humedales críticos para la biodiversidad, con alta sensibilidad a dragados.',
+      companyDescription: 'Puerto de Veracruz SA opera expansión portuaria con planes de manejo ambiental supervisados.',
       description: 'Expansion of port facilities and container terminals',
       imageUrl: 'https://images.unsplash.com/photo-1605880329287-8f5e39bd04f8?w=600',
       workZone: {
@@ -317,6 +331,8 @@ export const mockProjects = {
       vegetationLoss: 27,
       carbonFootprint: 1650,
       lastUpdated: '22 Ene 2025',
+      regionDescription: 'Tulum concentra selva baja y cenotes con fuerte presión turística, requiriendo protección de acuíferos.',
+      companyDescription: 'Desarrollos Turísticos del Caribe construye complejos con estándares de eficiencia energética y gestión de residuos.',
       description: 'New eco-resort development near Tulum',
       imageUrl: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600',
       workZone: {

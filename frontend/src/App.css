@@ -273,6 +273,34 @@ nav a.active {
   align-items: start;
 }
 
+.project-detail-context {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.context-card {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.context-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--earth-dark);
+  margin-bottom: 0.75rem;
+}
+
+.context-text {
+  color: var(--ink-light);
+  line-height: 1.6;
+  font-size: 0.98rem;
+}
+
 .project-detail-map {
   border-radius: 16px;
   border: 2px solid var(--border);
@@ -361,6 +389,10 @@ nav a.active {
 
 @media (max-width: 960px) {
   .project-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-detail-context {
     grid-template-columns: 1fr;
   }
 
