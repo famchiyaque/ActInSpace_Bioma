@@ -56,6 +56,29 @@ header {
   align-items: center;
 }
 
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  transition: transform 0.3s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
 h1 {
   font-family: var(--font-display);
   font-size: 1.3rem;

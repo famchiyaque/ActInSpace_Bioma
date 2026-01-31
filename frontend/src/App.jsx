@@ -147,9 +147,16 @@ function App() {
     <div className="app">
       <header>
         <div className="header-content">
-      <div>
-            <h1>Bioma - Monitoreo Ambiental</h1>
-            <div className="subtitle">Supervisión Transparente de Proyectos</div>
+          <div className="header-brand">
+<img 
+              src="/monvi_logo.png" 
+              alt="MONVI Logo" 
+              className="header-logo"
+            />
+            <div className="header-titles">
+              <h1>MONVI</h1>
+              <div className="subtitle">Monitoreo de Vigilancia Ambiental</div>
+            </div>
           </div>
           <nav>
             <a href="#" onClick={(e) => { e.preventDefault(); navigateToSection(mapSectionRef); }}>Mapa</a>
