@@ -9,20 +9,11 @@ def create_app() -> FastAPI:
         description="Backend API for Bioma deforestation monitoring system"
     )
     
-    # Configure CORS for frontend communication
+    # Configure CORS - Allow all origins for ngrok/demo deployment
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",  # React/Next.js default
-            "http://localhost:5173",  # Vite default
-            "http://localhost:5174",  # Vite alternative port
-            "http://localhost:8080",  # Vue default
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:5174",
-            # Add your production frontend URL here
-        ],
-        allow_credentials=True,
+        allow_origins=["*"],  # Allow any origin for ngrok demo
+        allow_credentials=False,  # Must be False when allow_origins is ["*"]
         allow_methods=["*"],  # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
         allow_headers=["*"],  # Allow all headers
     )

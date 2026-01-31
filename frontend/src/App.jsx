@@ -13,6 +13,21 @@ function ProjectDetailContent({ project, getRiskLabel }) {
     return predictRisk(project, 0)
   }, [project])
 
+  // Extract satellite images from reports
+  const satelliteImages = useMemo(() => {
+    if (!project?.reports || project.reports.length === 0) {
+      return { baseline: null, current: null }
+    }
+
+    const baselineReport = project.reports.find(r => r.report_type === 'before_image')
+    const currentReport = project.reports.find(r => r.report_type === 'after_image')
+
+    return {
+      baseline: baselineReport?.public_url || null,
+      current: currentReport?.public_url || null
+    }
+  }, [project?.reports])
+
   const riskIcons = {
     low: '✅',
     medium: '⚠️',
@@ -29,8 +44,41 @@ function ProjectDetailContent({ project, getRiskLabel }) {
         </p>
       </div>
       <div className="project-detail-grid">
-        <div className="project-detail-map">
-          <ProjectDetailMap project={project} />
+        <div className="project-detail-map-container">
+          <div className="project-detail-map">
+            <ProjectDetailMap project={project} />
+          </div>
+          
+          {/* Satellite Images Section */}
+          {(satelliteImages.baseline || satelliteImages.current) && (
+            <div className="satellite-images-section">
+              <h3 className="satellite-images-title">🛰️ Satellite Imagery</h3>
+              <div className="satellite-images-grid">
+                {satelliteImages.baseline && (
+                  <div className="satellite-image-card">
+                    <h4 className="satellite-image-label">Baseline Image</h4>
+                    <img 
+                      src={satelliteImages.baseline} 
+                      alt="Baseline satellite view" 
+                      className="satellite-image"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                {satelliteImages.current && (
+                  <div className="satellite-image-card">
+                    <h4 className="satellite-image-label">Current Image</h4>
+                    <img 
+                      src={satelliteImages.current} 
+                      alt="Current satellite view" 
+                      className="satellite-image"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         <div className="project-detail-kpis">
           {/* AI Risk Score Card - Primary */}
