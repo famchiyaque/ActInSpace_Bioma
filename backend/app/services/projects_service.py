@@ -1,4 +1,19 @@
-"""Project service - business logic for project management"""
+"""Project service - business logic for project management
+
+Project Service Layer
+
+Handles all business logic for project operations.
+
+Key Functions:
+- create_project(): Creates new monitoring project (from frontend)
+- get_projects_list(): Returns all projects for map view (frontend)
+- get_project_detail(): Returns detailed project info (frontend)
+
+Data Assembly:
+- Joins data from multiple tables (projects, companies, regions, geomarkers, runs)
+- Calculates carbon footprint from deforestation data
+- Formats data for frontend consumption
+"""
 
 from typing import List, Optional
 from datetime import datetime
@@ -44,7 +59,31 @@ def create_project(project_data: ProjectCreate) -> ProjectCreateResponse:
 
 
 def get_projects_list() -> ProjectsListResponse:
-    """Get all projects with summary data for map view"""
+    """
+    Get all projects with summary data for map view.
+    
+    Used by frontend to populate the main map interface.
+    
+    Data Assembly:
+    1. Fetches all projects with company and region joins
+    2. For each project:
+       - Gets active geomarker (highest version, is_active=true)
+       - Gets last completed run (latest end_date)
+       - Calculates carbon footprint (hectares × 400 tonnes CO2/ha)
+    
+    Carbon Footprint Calculation:
+    - Based on deforestation area from last run
+    - Formula: hectares_change × 400 tonnes CO2/hectare
+    - 400 tonnes/ha is average for tropical forests
+    - Returns null if no deforestation data available
+    
+    Returns:
+        ProjectsListResponse with list of projects including:
+        - Basic info, company, region
+        - Active geomarker with GeoJSON for map rendering
+        - Last run results
+        - Carbon footprint estimation
+    """
     projects_data = ProjectQueries.get_all_with_relations()
     
     projects_list = []

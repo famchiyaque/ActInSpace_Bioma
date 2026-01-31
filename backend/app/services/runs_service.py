@@ -1,5 +1,24 @@
 # Run service - business logic for run management
 
+"""
+Run Service Layer
+
+Handles all business logic for deforestation analysis runs.
+
+Key Functions:
+- create_run(): Creates new analysis run (triggered by frontend)
+- get_run_detail(): Fetches run status and results (polled by frontend)
+- get_run_reports(): Gets generated images/maps (displayed by frontend)
+- process_gee_result(): Processes results from GEE pipeline
+
+Workflow:
+1. Frontend creates run -> status='queued'
+2. GEE picks up queued runs
+3. GEE processes satellite data
+4. GEE posts results -> status='completed'
+5. Frontend displays results
+"""
+
 import uuid
 from typing import Optional, Dict, Any
 from datetime import datetime
@@ -78,15 +97,45 @@ def get_run_reports(run_id: str) -> ReportsResponse:
 
 
 def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
-    """Process GEE pipeline results"""
+    """
+    Process results submitted by GEE pipeline.
+    
+    This is called by the GEE pipeline after satellite analysis completes.
+    
+    Actions performed:
+    1. Validate run exists
+    2. Extract affected area from stats
+    3. Calculate risk label based on deforestation severity:
+       - >= 10 hectares: HIGH risk
+       - >= 3 hectares: MEDIUM risk
+       - > 0 hectares: LOW risk
+       - 0 hectares: UNKNOWN
+    4. Update run with:
+       - status='completed'
+       - stats (all analysis metrics)
+       - hectares_change (total affected area)
+       - finished_at (completion timestamp)
+    5. Update project risk_label
+    6. Create report entries for:
+       - before_image
+       - after_image
+       - delta_map
+       - loss_polygons_geojson
+    
+    Args:
+        gee_data: Results from GEE pipeline with stats, URLs, metadata
+    
+    Returns:
+        Success response with run_id and status
+    """
     run = RunQueries.get_by_id(gee_data.run_id)
     if not run:
         raise HTTPException(status_code=404, detail=f"Run {gee_data.run_id} not found")
     
-    # Extract affected area
+    # Extract affected area for risk calculation
     affected_area_ha = gee_data.stats.get("affected_area_ha", 0)
     
-    # Determine risk label
+    # Determine risk label based on deforestation severity
     if affected_area_ha >= 10:
         risk_label = "high"
     elif affected_area_ha >= 3:
@@ -96,7 +145,7 @@ def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
     else:
         risk_label = "unknown"
     
-    # Update run status
+    # Update run with completed status and results
     run_update = {
         "status": "completed",
         "stats": gee_data.stats,
@@ -105,13 +154,13 @@ def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
     }
     RunQueries.update(gee_data.run_id, run_update)
     
-    # Update project risk label
+    # Update project risk label based on latest analysis
     ProjectQueries.update(gee_data.project_id, {"risk_label": risk_label})
     
-    # Create report entries
+    # Create report entries for frontend to display
     reports_to_create = []
     
-    # Map output URLs to report types
+    # Map GEE output URLs to report types
     output_mapping = {
         "before_image_url": "before_image",
         "after_image_url": "after_image",
@@ -124,10 +173,10 @@ def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
                 "run_id": gee_data.run_id,
                 "report_type": report_type,
                 "public_url": gee_data.outputs[key],
-                "metadata": gee_data.metadata,
+                "metadata": gee_data.metadata,  # Satellite info, processing date
             })
     
-    # Add loss polygons
+    # Add loss polygons GeoJSON
     if gee_data.loss_polygons_url:
         reports_to_create.append({
             "run_id": gee_data.run_id,
@@ -136,6 +185,7 @@ def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
             "metadata": gee_data.metadata,
         })
     
+    # Batch create all reports
     if reports_to_create:
         ReportQueries.create_many(reports_to_create)
     
