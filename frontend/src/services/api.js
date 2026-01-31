@@ -4,7 +4,48 @@
  * Handles all communication with the backend API
  */
 
+import { generateSyntheticPolygon } from '../utils/polygonGenerator';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Default coordinates for Mexican states/regions when none are provided
+const REGION_DEFAULT_COORDINATES = {
+  'Nuevo León': { lng: -100.31, lat: 25.67 },
+  'Ciudad de México': { lng: -99.13, lat: 19.43 },
+  'CDMX': { lng: -99.13, lat: 19.43 },
+  'Jalisco': { lng: -103.35, lat: 20.67 },
+  'Veracruz': { lng: -96.13, lat: 19.18 },
+  'Quintana Roo': { lng: -87.46, lat: 20.21 },
+  'Yucatán': { lng: -89.62, lat: 20.97 },
+  'Chihuahua': { lng: -106.08, lat: 28.63 },
+  'Sonora': { lng: -110.97, lat: 29.07 },
+  'Baja California': { lng: -117.02, lat: 32.52 },
+  'Oaxaca': { lng: -96.72, lat: 17.06 },
+  'Chiapas': { lng: -93.11, lat: 16.75 },
+  'Tabasco': { lng: -92.95, lat: 17.98 },
+  'Sinaloa': { lng: -107.39, lat: 24.81 },
+  'Puebla': { lng: -98.21, lat: 19.04 },
+  'Guerrero': { lng: -99.50, lat: 17.55 },
+  'Tamaulipas': { lng: -99.15, lat: 23.74 },
+  'Michoacán': { lng: -101.18, lat: 19.70 },
+  'Guanajuato': { lng: -101.26, lat: 21.02 },
+  'San Luis Potosí': { lng: -100.98, lat: 22.15 },
+  'Coahuila': { lng: -101.42, lat: 25.42 },
+  'Durango': { lng: -104.67, lat: 24.03 },
+  'Zacatecas': { lng: -102.57, lat: 22.77 },
+  'Aguascalientes': { lng: -102.29, lat: 21.88 },
+  'Nayarit': { lng: -104.89, lat: 21.75 },
+  'Colima': { lng: -103.72, lat: 19.24 },
+  'Querétaro': { lng: -100.39, lat: 20.59 },
+  'Hidalgo': { lng: -98.76, lat: 20.09 },
+  'Tlaxcala': { lng: -98.24, lat: 19.32 },
+  'Morelos': { lng: -99.23, lat: 18.92 },
+  'Estado de México': { lng: -99.62, lat: 19.29 },
+  'Campeche': { lng: -90.53, lat: 19.84 },
+  'Baja California Sur': { lng: -111.98, lat: 24.14 },
+  // Fallback for unknown regions
+  'default': { lng: -102.55, lat: 23.63 } // Center of Mexico
+};
 
 /**
  * Generic fetch wrapper with error handling
@@ -141,9 +182,12 @@ export function transformProjectData(backendData) {
       }
     };
   }
+  
+  // Flag to track if we need to generate a synthetic polygon later
+  let needsSyntheticPolygon = !workZone;
 
   // Extract center coordinates from the active geomarker's geometry if available
-  // Priority: center_lat/center_lng from list > derived from geometry
+  // Priority: center_lat/center_lng from list > derived from geometry > region default
   let centerLat = backendProject.center_lat || null;
   let centerLng = backendProject.center_lng || null;
   
@@ -156,8 +200,61 @@ export function transformProjectData(backendData) {
       centerLat = coords[centerIdx][1];
     }
   }
+  
+  // If still no coordinates, use region-based default coordinates
+  if (!centerLat || !centerLng) {
+    const regionName = backendProject.region?.name || 'default';
+    
+    // Find matching coordinates - try exact match first, then partial match
+    let regionCoords = REGION_DEFAULT_COORDINATES[regionName];
+    
+    if (!regionCoords) {
+      // Try to find a partial match (e.g., "Jalisco - Guadalajara" should match "Jalisco")
+      const regionKeys = Object.keys(REGION_DEFAULT_COORDINATES);
+      for (const key of regionKeys) {
+        if (regionName.toLowerCase().includes(key.toLowerCase()) || 
+            key.toLowerCase().includes(regionName.toLowerCase().split(' ')[0])) {
+          regionCoords = REGION_DEFAULT_COORDINATES[key];
+          console.log(`Matched region "${regionName}" to "${key}"`);
+          break;
+        }
+      }
+    }
+    
+    // Fall back to default if no match found
+    if (!regionCoords) {
+      regionCoords = REGION_DEFAULT_COORDINATES['default'];
+    }
+    
+    // Add small random offset based on project ID to spread markers
+    const idHash = backendProject.id ? 
+      backendProject.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+    const offsetLng = ((idHash % 100) - 50) * 0.003; // ±0.15 degrees
+    const offsetLat = (((idHash * 7) % 100) - 50) * 0.003;
+    
+    centerLng = regionCoords.lng + offsetLng;
+    centerLat = regionCoords.lat + offsetLat;
+    
+    console.log(`Using coordinates for "${backendProject.name}" in ${regionName}: ${centerLat.toFixed(4)}, ${centerLng.toFixed(4)}`);
+  }
 
   const hasCoordinates = centerLat != null && centerLng != null;
+  
+  // Generate synthetic polygon if no real one exists but we have coordinates
+  if (needsSyntheticPolygon && hasCoordinates) {
+    // Use a default area of 100 hectares if not available
+    const estimatedArea = 100;
+    workZone = generateSyntheticPolygon(
+      backendProject.id,
+      centerLng,
+      centerLat,
+      estimatedArea
+    );
+    workZone.properties = {
+      name: backendProject.name,
+      compliance: backendProject.risk_label || 'unknown'
+    };
+  }
 
   const normalizedRiskLabel = backendProject.risk_label
     ? backendProject.risk_label.toString().trim().toLowerCase()
