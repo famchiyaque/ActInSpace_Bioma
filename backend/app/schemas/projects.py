@@ -48,6 +48,7 @@ class ProjectListItem(BaseModel):
     active_geomarker: Optional[GeomarkerBase] = None
     last_run: Optional[RunHistoryItem] = None
     carbon_footprint_tonnes: Optional[float] = None
+    latest_image_url: Optional[str] = None  # Most recent satellite image from last run
 
 
 class ProjectsListResponse(BaseModel):

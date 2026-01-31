@@ -118,6 +118,7 @@ def get_projects_list() -> ProjectsListResponse:
         # Get last run
         last_run = None
         carbon_footprint = None
+        latest_image_url = None
         last_run_data = RunQueries.get_last_completed_for_project(proj["id"])
         if last_run_data:
             last_run = RunHistoryItem(
@@ -129,6 +130,19 @@ def get_projects_list() -> ProjectsListResponse:
             # Calculate carbon footprint: hectares * 400 tonnes CO2/hectare (tropical forest average)
             if last_run_data.get("hectares_change"):
                 carbon_footprint = last_run_data["hectares_change"] * 400
+            
+            # Get latest photograph from reports (prefer after_image, fallback to before_image)
+            reports = ReportQueries.get_by_run_id(last_run_data["id"])
+            for report in reports:
+                if report["report_type"] == "after_image" and report.get("public_url"):
+                    latest_image_url = report["public_url"]
+                    break
+            # Fallback to before_image if no after_image
+            if not latest_image_url:
+                for report in reports:
+                    if report["report_type"] == "before_image" and report.get("public_url"):
+                        latest_image_url = report["public_url"]
+                        break
         
         projects_list.append(ProjectListItem(
             id=proj["id"],
@@ -139,7 +153,8 @@ def get_projects_list() -> ProjectsListResponse:
             region=region,
             active_geomarker=active_geomarker,
             last_run=last_run,
-            carbon_footprint_tonnes=carbon_footprint
+            carbon_footprint_tonnes=carbon_footprint,
+            latest_image_url=latest_image_url
         ))
     
     return ProjectsListResponse(projects=projects_list)
