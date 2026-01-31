@@ -4,7 +4,6 @@ import MexicoMap from './components/Map/MexicoMap'
 
 function App() {
   const [activeView, setActiveView] = useState('landing')
-  const [selectedState, setSelectedState] = useState(null)
   const [selectedProject, setSelectedProject] = useState(null)
   const [activeRiskFilters, setActiveRiskFilters] = useState({
     high: true,
@@ -14,6 +13,9 @@ function App() {
 
   const showView = (viewId) => {
     setActiveView(viewId)
+    if (viewId !== 'landing') {
+      setSelectedProject(null)
+    }
     window.scrollTo(0, 0)
   }
 
@@ -24,12 +26,15 @@ function App() {
     }))
   }
 
-  const handleStateSelect = (state) => {
-    setSelectedState(state)
-  }
-
   const handleProjectSelect = (project) => {
     setSelectedProject(project)
+  }
+
+  const handleProjectClose = () => {
+    setSelectedProject(null)
+  }
+
+  const handleViewFullProject = () => {
     showView('project')
   }
 
@@ -55,9 +60,9 @@ function App() {
       <div className={`view ${activeView === 'landing' ? 'active' : ''}`}>
         <div className="map-view-container">
           <MexicoMap 
-            onStateSelect={handleStateSelect}
             onProjectSelect={handleProjectSelect}
-            selectedState={selectedState}
+            selectedProject={selectedProject}
+            onProjectClose={handleProjectClose}
           />
         </div>
       </div>
@@ -135,7 +140,7 @@ function App() {
       <div className={`view ${activeView === 'project' ? 'active' : ''}`}>
         <div className="project-detail">
           <div className="breadcrumb">
-            <a href="#" onClick={(e) => { e.preventDefault(); showView('landing'); }}>Mapa</a> / {selectedState && <><a href="#" onClick={(e) => { e.preventDefault(); showView('landing'); }}>{selectedState.name}</a> / </>}{selectedProject ? selectedProject.name : 'Copper Mining Expansion - Río Verde'}
+            <a href="#" onClick={(e) => { e.preventDefault(); showView('landing'); }}>Mapa</a> / {selectedProject ? selectedProject.name : 'Copper Mining Expansion - Río Verde'}
           </div>
           
           <div className="project-header">

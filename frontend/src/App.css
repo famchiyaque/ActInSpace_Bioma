@@ -114,6 +114,16 @@ nav a.active {
   position: relative;
 }
 
+/* Sidebar animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 /* Map View */
 .map-container {
   display: grid;
