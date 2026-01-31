@@ -49,6 +49,9 @@ class ProjectListItem(BaseModel):
     last_run: Optional[RunHistoryItem] = None
     carbon_footprint_tonnes: Optional[float] = None
     latest_image_url: Optional[str] = None  # Most recent satellite image from last run
+    center_lat: Optional[float] = None  # Latitude for map marker placement
+    center_lng: Optional[float] = None  # Longitude for map marker placement
+    image_url: Optional[str] = None  # Project image URL
 
 
 class ProjectsListResponse(BaseModel):

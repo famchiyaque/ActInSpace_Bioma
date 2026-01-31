@@ -1360,3 +1360,42 @@ nav a.active {
   color: var(--earth-dark);
 }
 
+/* Loading and Error States */
+.project-loading-state,
+.project-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.project-loading-state h2,
+.project-error-state h2 {
+  font-family: var(--font-display);
+  color: var(--earth-dark);
+  margin-top: 1rem;
+  font-size: 1.5rem;
+}
+
+.project-error-state p {
+  color: var(--ink-light);
+  margin: 1rem 0;
+  text-align: center;
+  max-width: 500px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--earth-dark);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

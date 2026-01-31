@@ -3,6 +3,7 @@ import './App.css'
 import MexicoMap from './components/Map/MexicoMap'
 import ProjectDetailMap from './components/Map/ProjectDetailMap'
 import { getProjectById } from './data/mock-projects'
+import { projectsApi, transformProjectData } from './services/api'
 
 function App() {
   const [activeView, setActiveView] = useState('landing')
@@ -13,6 +14,8 @@ function App() {
     category: 'all',
     year: 'all'
   })
+  const [loadingProject, setLoadingProject] = useState(false)
+  const [projectError, setProjectError] = useState(null)
 
   // Refs for scrolling
   const mapSectionRef = useRef(null)
@@ -44,7 +47,7 @@ function App() {
   }
 
   useEffect(() => {
-    const handleHashChange = () => {
+    const handleHashChange = async () => {
       const rawHash = window.location.hash.replace(/^#/, '')
       if (!rawHash) {
         setActiveView('landing')
@@ -57,12 +60,31 @@ function App() {
 
       if (route === 'project') {
         if (projectId) {
-          const project = getProjectById(projectId)
-          if (project) {
-            setSelectedProject(project)
+          setLoadingProject(true)
+          setProjectError(null)
+          
+          try {
+            // Try fetching from backend API first
+            const projectDetail = await projectsApi.getProjectDetail(projectId)
+            const transformedProject = transformProjectData(projectDetail)
+            setSelectedProject(transformedProject)
             setActiveView('project')
-            return
+          } catch (error) {
+            console.warn('Failed to fetch project from API, trying mock data:', error.message)
+            // Fallback to mock data
+            const project = getProjectById(projectId)
+            if (project) {
+              setSelectedProject(project)
+              setActiveView('project')
+            } else {
+              setProjectError('Proyecto no encontrado')
+              setSelectedProject(null)
+              setActiveView('project')
+            }
+          } finally {
+            setLoadingProject(false)
           }
+          return
         }
         setSelectedProject(null)
         setActiveView('project')
@@ -78,8 +100,21 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  const handleProjectClick = (project) => {
+  const handleProjectClick = async (project) => {
+    // If project has basic info, set it immediately for UI responsiveness
     setSelectedProject(project)
+    
+    // Then try to fetch full details from API
+    if (project.id) {
+      try {
+        const projectDetail = await projectsApi.getProjectDetail(project.id)
+        const transformedProject = transformProjectData(projectDetail)
+        setSelectedProject(transformedProject)
+      } catch (error) {
+        console.warn('Failed to fetch full project details:', error.message)
+        // Keep the basic project info that was already set
+      }
+    }
   }
 
   const handleProjectClose = () => {
@@ -296,7 +331,23 @@ function App() {
 
         {activeView === 'project' && (
           <div className="view-content project-detail-view" id="project-view">
-            {selectedProject ? (
+            {loadingProject ? (
+              <div className="project-loading-state">
+                <div className="spinner" />
+                <h2>Cargando proyecto...</h2>
+              </div>
+            ) : projectError ? (
+              <div className="project-error-state">
+                <h2>⚠️ Error</h2>
+                <p>{projectError}</p>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => window.location.hash = '#'}
+                >
+                  Volver al mapa
+                </button>
+              </div>
+            ) : selectedProject ? (
               <>
                 <div className="project-detail-header">
                   <h1 className="project-title">{selectedProject.name}</h1>
