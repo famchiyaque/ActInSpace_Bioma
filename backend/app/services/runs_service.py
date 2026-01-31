@@ -145,10 +145,33 @@ def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
     else:
         risk_label = "unknown"
     
+    # Merge output URLs into stats.images for easier frontend access
+    stats_with_images = dict(gee_data.stats or {})
+    existing_images = stats_with_images.get("images") or {}
+    output_images = {}
+
+    # Support both legacy and new output keys
+    outputs = gee_data.outputs or {}
+    if outputs.get("before_image_url"):
+        output_images["before_rgb"] = outputs["before_image_url"]
+    if outputs.get("after_image_url"):
+        output_images["after_rgb"] = outputs["after_image_url"]
+    if outputs.get("delta_map_url"):
+        output_images["delta_ndvi"] = outputs["delta_map_url"]
+    if outputs.get("before_rgb"):
+        output_images["before_rgb"] = outputs["before_rgb"]
+    if outputs.get("after_rgb"):
+        output_images["after_rgb"] = outputs["after_rgb"]
+    if outputs.get("delta_ndvi"):
+        output_images["delta_ndvi"] = outputs["delta_ndvi"]
+
+    if output_images:
+        stats_with_images["images"] = {**existing_images, **output_images}
+
     # Update run with completed status and results
     run_update = {
         "status": "completed",
-        "stats": gee_data.stats,
+        "stats": stats_with_images,
         "hectares_change": affected_area_ha,
         "finished_at": datetime.utcnow().isoformat(),
     }
@@ -165,6 +188,9 @@ def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
         "before_image_url": "before_image",
         "after_image_url": "after_image",
         "delta_map_url": "delta_map",
+        "before_rgb": "before_image",
+        "after_rgb": "after_image",
+        "delta_ndvi": "delta_map",
     }
     
     for key, report_type in output_mapping.items():
