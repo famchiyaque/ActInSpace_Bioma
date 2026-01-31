@@ -9,10 +9,12 @@ export const mockProjects = {
       status: 'active',
       compliance: 'warning',
       level: 'federal',
+      category: 'Infraestructura',
       company: 'Constructora del Norte S.A.',
       startDate: '2024-01-15',
       area: 245,
       description: 'Highway expansion project in northern Monterrey metropolitan area',
+      imageUrl: 'https://images.unsplash.com/photo-1621544402532-c62fe9b9f996?w=600',
       workZone: {
         type: 'Feature',
         geometry: {
@@ -39,10 +41,12 @@ export const mockProjects = {
       stateCode: 'NL',
       status: 'finished',
       compliance: 'compliant',
+      category: 'Desarrollo Urbano',
       company: 'Desarrollo Industrial del Norte',
       startDate: '2023-11-20',
       area: 180,
       description: 'New industrial park near Apodaca',
+      imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600',
       workZone: {
         type: 'Feature',
         geometry: {
@@ -72,10 +76,12 @@ export const mockProjects = {
       status: 'active',
       compliance: 'violation',
       level: 'federal',
+      category: 'Transporte',
       company: 'Metro CDMX Construcciones',
       startDate: '2024-03-01',
       area: 320,
       description: 'Extension of Metro Line 12 through southern districts',
+      imageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600',
       workZone: {
         type: 'Feature',
         geometry: {
@@ -120,10 +126,12 @@ export const mockProjects = {
       stateCode: 'CDMX',
       status: 'finished',
       compliance: 'compliant',
+      category: 'Desarrollo Urbano',
       company: 'Desarrollos Urbanos SA',
       startDate: '2024-02-10',
       area: 150,
       description: 'High-rise residential development in Santa Fe',
+      imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600',
       workZone: {
         type: 'Feature',
         geometry: {
@@ -153,10 +161,12 @@ export const mockProjects = {
       status: 'active',
       compliance: 'warning',
       level: 'federal',
+      category: 'Transporte',
       company: 'Aeropuertos y Servicios',
       startDate: '2023-09-15',
       area: 580,
       description: 'Expansion of international airport facilities',
+      imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600',
       workZone: {
         type: 'Feature',
         geometry: {
@@ -183,10 +193,12 @@ export const mockProjects = {
       stateCode: 'JAL',
       status: 'finished',
       compliance: 'compliant',
+      category: 'Medio Ambiente',
       company: 'Servicios Ambientales de Jalisco',
       startDate: '2024-01-05',
       area: 95,
       description: 'New water treatment facility for metropolitan area',
+      imageUrl: 'https://images.unsplash.com/photo-1581093458791-9d42e3c95e1d?w=600',
       workZone: {
         type: 'Feature',
         geometry: {
@@ -216,10 +228,12 @@ export const mockProjects = {
       status: 'active',
       compliance: 'violation',
       level: 'federal',
+      category: 'Infraestructura',
       company: 'Puerto de Veracruz SA',
       startDate: '2023-10-20',
       area: 420,
       description: 'Expansion of port facilities and container terminals',
+      imageUrl: 'https://images.unsplash.com/photo-1605880329287-8f5e39bd04f8?w=600',
       workZone: {
         type: 'Feature',
         geometry: {
@@ -267,10 +281,12 @@ export const mockProjects = {
       status: 'active',
       compliance: 'warning',
       level: 'municipal',
+      category: 'Turismo',
       company: 'Desarrollos Turísticos del Caribe',
       startDate: '2024-02-01',
       area: 280,
       description: 'New eco-resort development near Tulum',
+      imageUrl: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600',
       workZone: {
         type: 'Feature',
         geometry: {

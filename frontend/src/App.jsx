@@ -1,32 +1,33 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import './App.css'
 import MexicoMap from './components/Map/MexicoMap'
 
 function App() {
   const [activeView, setActiveView] = useState('landing')
   const [selectedProject, setSelectedProject] = useState(null)
-  const [activeRiskFilters, setActiveRiskFilters] = useState({
-    high: true,
-    medium: true,
-    low: true
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filters, setFilters] = useState({
+    status: 'all',
+    category: 'all',
+    year: 'all'
   })
 
-  const showView = (viewId) => {
-    setActiveView(viewId)
-    if (viewId !== 'landing') {
-      setSelectedProject(null)
-    }
-    window.scrollTo(0, 0)
+  // Refs for scrolling
+  const mapSectionRef = useRef(null)
+  const aboutSectionRef = useRef(null)
+  const featuresSectionRef = useRef(null)
+  const uploadSectionRef = useRef(null)
+
+  const showView = (view) => {
+    setActiveView(view)
+    setSelectedProject(null)
   }
 
-  const toggleRiskFilter = (level) => {
-    setActiveRiskFilters(prev => ({
-      ...prev,
-      [level]: !prev[level]
-    }))
+  const scrollToSection = (ref) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleProjectSelect = (project) => {
+  const handleProjectClick = (project) => {
     setSelectedProject(project)
   }
 
@@ -34,560 +35,807 @@ function App() {
     setSelectedProject(null)
   }
 
-  const handleViewFullProject = () => {
-    showView('project')
+  const handleFilterChange = (filterType, value) => {
+    setFilters(prev => ({ ...prev, [filterType]: value }))
   }
 
   return (
     <div className="app">
       <header>
         <div className="header-content">
-          <div>
+      <div>
             <h1>Bioma - Monitoreo Ambiental</h1>
             <div className="subtitle">Supervisión Transparente de Proyectos</div>
           </div>
-          <nav>
-            <a href="#" data-view="landing" className={activeView === 'landing' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('landing'); setSelectedState(null); }}>Mapa</a>
-            <a href="#" data-view="project" className={activeView === 'project' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('project'); }}>Proyecto</a>
-            <a href="#" data-view="company" className={activeView === 'company' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('company'); }}>Empresa</a>
-            <a href="#" data-view="region" className={activeView === 'region' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('region'); }}>Región</a>
-            <a href="#" data-view="report" className={activeView === 'report' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('report'); }}>Reporte</a>
-          </nav>
+          {activeView === 'landing' ? (
+            <nav>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(mapSectionRef); }}>Mapa</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(aboutSectionRef); }}>Acerca</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(featuresSectionRef); }}>Características</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(uploadSectionRef); }}>Subir Proyecto</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); showView('news'); }}>Noticias</a>
+            </nav>
+          ) : (
+            <nav>
+              <a href="#" className={activeView === 'landing' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('landing'); }}>Inicio</a>
+              <a href="#" className={activeView === 'project' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('project'); }}>Proyecto</a>
+              <a href="#" className={activeView === 'company' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('company'); }}>Empresa</a>
+              <a href="#" className={activeView === 'region' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('region'); }}>Región</a>
+              <a href="#" className={activeView === 'report' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('report'); }}>Reporte</a>
+            </nav>
+          )}
         </div>
       </header>
 
-      {/* Landing - Mexico Map View */}
-      <div className={`view ${activeView === 'landing' ? 'active' : ''}`}>
-        <div className="map-view-container">
-          <MexicoMap 
-            onProjectSelect={handleProjectSelect}
-            selectedProject={selectedProject}
-            onProjectClose={handleProjectClose}
-          />
-        </div>
-      </div>
-
-      {/* Old Map View (keeping for reference) */}
-      <div className={`view ${activeView === 'map' ? 'active' : ''}`}>
-        <div className="map-container">
-          <aside className="sidebar">
-            <h2>Explore Projects</h2>
-            
-            <div className="filter-group">
-              <label>Region</label>
-              <select>
-                <option>All Regions</option>
-                <option>Antofagasta Region</option>
-                <option>Valparaíso Region</option>
-                <option>Metropolitan Region</option>
-                <option>Los Lagos Region</option>
-                <option>Magallanes Region</option>
-              </select>
-            </div>
-            
-            <div className="filter-group">
-              <label>Company / Organization</label>
-              <input type="text" placeholder="Search companies..." />
-            </div>
-            
-            <div className="filter-group">
-              <label>Environmental Risk Level</label>
-              <div className="risk-filters">
-                <button className={`risk-badge high ${activeRiskFilters.high ? 'active' : ''}`} onClick={() => toggleRiskFilter('high')}>High</button>
-                <button className={`risk-badge medium ${activeRiskFilters.medium ? 'active' : ''}`} onClick={() => toggleRiskFilter('medium')}>Medium</button>
-                <button className={`risk-badge low ${activeRiskFilters.low ? 'active' : ''}`} onClick={() => toggleRiskFilter('low')}>Low</button>
-              </div>
-            </div>
-            
-            <div className="transparency-note" style={{marginTop: '2rem'}}>
-              <p><strong>About this data:</strong> All monitoring data is derived from Sentinel-2 satellite imagery processed through Google Earth Engine. Updates reflect weekly aggregations of 5-day imagery cycles.</p>
-            </div>
-          </aside>
-          
-          <div className="map-area">
-            <div className="map-overlay"></div>
-            <div className="project-markers">
-              <div className="project-marker high" style={{top: '20%', left: '15%'}} onClick={() => showView('project')} title="Copper Mining Expansion - Río Verde">1</div>
-              <div className="project-marker medium" style={{top: '35%', left: '45%'}} title="Hydroelectric Dam Construction">2</div>
-              <div className="project-marker low" style={{top: '60%', left: '30%'}} title="Solar Farm Development">3</div>
-              <div className="project-marker high" style={{top: '40%', left: '70%'}} title="Industrial Port Expansion">4</div>
-              <div className="project-marker medium" style={{top: '75%', left: '55%'}} title="Forestry Operations">5</div>
-              <div className="project-marker low" style={{top: '25%', left: '80%'}} title="Wind Energy Project">6</div>
-              <div className="project-marker medium" style={{top: '50%', left: '25%'}} title="Infrastructure Highway">7</div>
-              <div className="project-marker high" style={{top: '80%', left: '40%'}} title="Coastal Development">8</div>
-            </div>
-            
-            <div className="map-legend">
-              <h3>Risk Levels</h3>
-              <div className="legend-item">
-                <span className="legend-dot" style={{background: 'var(--alert-high)'}}></span>
-                <span>High Impact</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-dot" style={{background: 'var(--alert-medium)'}}></span>
-                <span>Medium Impact</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-dot" style={{background: 'var(--alert-low)'}}></span>
-                <span>Low Impact</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Project Detail View */}
-      <div className={`view ${activeView === 'project' ? 'active' : ''}`}>
-        <div className="project-detail">
-          <div className="breadcrumb">
-            <a href="#" onClick={(e) => { e.preventDefault(); showView('landing'); }}>Mapa</a> / {selectedProject ? selectedProject.name : 'Copper Mining Expansion - Río Verde'}
-          </div>
-          
-          <div className="project-header">
-            <div className="project-title">
-              <h2>{selectedProject ? selectedProject.name : 'Copper Mining Expansion - Río Verde'}</h2>
-              <div className="project-meta">
-                <div className="meta-item">
-                  <span className="meta-label">Empresa</span>
-                  <span className="meta-value"><a href="#" onClick={(e) => { e.preventDefault(); showView('company'); }} style={{color: 'var(--earth-dark)', textDecoration: 'none'}}>{selectedProject ? selectedProject.company : 'Minera del Norte S.A.'}</a></span>
-                </div>
-                <div className="meta-item">
-                  <span className="meta-label">Estado</span>
-                  <span className="meta-value">{selectedProject ? selectedProject.state : 'Antofagasta Region'}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="meta-label">Monitoreo Desde</span>
-                  <span className="meta-value">{selectedProject ? selectedProject.startDate : 'March 2024'}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className={`risk-indicator ${selectedProject ? selectedProject.compliance : 'high'}`}>
-              <div className="risk-label">Estado Actual</div>
-              <div className="risk-level">{selectedProject ? (selectedProject.compliance === 'compliant' ? 'CUMPLIMIENTO' : selectedProject.compliance === 'warning' ? 'ADVERTENCIA' : 'VIOLACIÓN') : 'HIGH RISK'}</div>
-            </div>
-          </div>
-          
-          <div className="content-grid">
-            <div className="main-content">
-              <h3>Description</h3>
-              <p style={{marginBottom: '2rem', lineHeight: 1.8}}>
-                Expansion of existing copper mining operations in the Río Verde watershed. The project involves opening new extraction zones covering approximately 850 hectares of previously undisturbed terrain, including construction of new access roads and processing facilities.
-              </p>
-              
-              <div className="satellite-timeline">
-                <div className="timeline-header">
-                  <h3>Satellite Imagery Timeline</h3>
-                  <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--ink-light)'}}>Last 12 weeks</span>
-                </div>
+      <main>
+        {activeView === 'landing' && (
+          <div className="landing-page">
+            {/* Map Section */}
+            <section className="map-section" ref={mapSectionRef}>
+              <div className="section-container">
+                <h2 className="section-title">Explora Proyectos en México</h2>
                 
-                <div className="timeline-images">
-                  <div className="timeline-image">
-                    <div className="image-overlay">Oct 2025</div>
+                {/* Search and Filters */}
+                <div className="search-filters-bar">
+                  <input
+                    type="text"
+                    placeholder="Buscar proyecto..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="search-input"
+                  />
+                  
+                  <select 
+                    value={filters.status} 
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">Estado: Todos</option>
+                    <option value="compliant">En Regla</option>
+                    <option value="warning">Advertencia</option>
+                    <option value="violation">Violación</option>
+                  </select>
+
+                  <select 
+                    value={filters.category} 
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">Categoría: Todas</option>
+                    <option value="Infraestructura">Infraestructura</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Desarrollo Urbano">Desarrollo Urbano</option>
+                    <option value="Medio Ambiente">Medio Ambiente</option>
+                    <option value="Turismo">Turismo</option>
+                  </select>
+
+                  <select 
+                    value={filters.year} 
+                    onChange={(e) => handleFilterChange('year', e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">Año: Todos</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                  </select>
+                </div>
+
+                {/* Map Container */}
+                <div className="map-wrapper">
+                  <MexicoMap 
+                    onProjectSelect={handleProjectClick}
+                    selectedProject={selectedProject}
+                    onProjectClose={handleProjectClose}
+                    searchQuery={searchQuery}
+                    filters={filters}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Hero Section */}
+            <section className="hero-section">
+              <div className="hero-content">
+                <h2>Monitoreo en Tiempo Real de Proyectos de Construcción</h2>
+                <p>Utilizamos imágenes satelitales y tecnología de punta para garantizar que los proyectos de construcción cumplan con regulaciones ambientales y respeten zonas protegidas.</p>
+              </div>
+            </section>
+
+            {/* About Section */}
+            <section className="about-section" ref={aboutSectionRef}>
+              <div className="section-container">
+                <h2 className="section-title">Nuestra Misión</h2>
+                <div className="about-grid">
+                  <div className="about-card">
+                    <div className="about-icon">🌍</div>
+                    <h3>Protección Ambiental</h3>
+                    <p>Limitamos la destrucción ambiental mediante el monitoreo constante de proyectos de construcción y su cumplimiento con regulaciones establecidas.</p>
                   </div>
-                  <div className="timeline-image" onClick={() => showView('report')} style={{cursor: 'pointer'}}>
-                    <div className="image-overlay">Dec 2025</div>
+                  <div className="about-card">
+                    <div className="about-icon">🛰️</div>
+                    <h3>Tecnología Satelital</h3>
+                    <p>Utilizamos imágenes satelitales de alta resolución para rastrear el progreso de construcciones y detectar violaciones a zonas protegidas.</p>
                   </div>
-                  <div className="timeline-image">
-                    <div className="image-overlay">Jan 2026</div>
+                  <div className="about-card">
+                    <div className="about-icon">📊</div>
+                    <h3>Transparencia Total</h3>
+                    <p>Proporcionamos datos abiertos y transparentes sobre el estado de proyectos, permitiendo a ciudadanos y autoridades tomar decisiones informadas.</p>
                   </div>
                 </div>
-                
-                <p style={{marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--ink-light)'}}>
-                  Click any image to view detailed comparison reports. Imagery updated weekly based on Sentinel-2 data.
-                </p>
+              </div>
+            </section>
+
+            {/* Features Section */}
+            <section className="features-section" ref={featuresSectionRef}>
+              <div className="section-container">
+                <h2 className="section-title">Características Principales</h2>
+                <div className="features-grid">
+                  <div className="feature-item">
+                    <h3>🗺️ Mapeo Interactivo</h3>
+                    <p>Visualiza todos los proyectos de construcción en un mapa interactivo de México con filtros personalizables.</p>
+                  </div>
+                  <div className="feature-item">
+                    <h3>📸 Imágenes Satelitales</h3>
+                    <p>Accede a imágenes satelitales actualizadas de cada proyecto para verificar su progreso y cumplimiento.</p>
+                  </div>
+                  <div className="feature-item">
+                    <h3>⚠️ Alertas Automáticas</h3>
+                    <p>Recibe notificaciones cuando un proyecto entra en zonas protegidas o viola regulaciones ambientales.</p>
+                  </div>
+                  <div className="feature-item">
+                    <h3>📄 Generación de Reportes</h3>
+                    <p>Genera reportes detallados sobre el estado de proyectos, áreas afectadas y cumplimiento normativo.</p>
+                  </div>
+                  <div className="feature-item">
+                    <h3>🔍 Búsqueda Avanzada</h3>
+                    <p>Encuentra proyectos específicos por nombre, ubicación, empresa o nivel de cumplimiento.</p>
+                  </div>
+                  <div className="feature-item">
+                    <h3>📈 Análisis Histórico</h3>
+                    <p>Revisa el historial completo de un proyecto y compara imágenes satelitales a través del tiempo.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Upload Section */}
+            <section className="upload-section" ref={uploadSectionRef}>
+              <div className="section-container">
+                <h2 className="section-title">Subir Nuevo Proyecto</h2>
+                <div className="upload-content">
+                  <p className="upload-description">
+                    ¿Tienes información sobre un nuevo proyecto de construcción? Ayúdanos a mantener nuestra base de datos actualizada.
+                  </p>
+                  <div className="upload-card">
+                    <div className="upload-icon">📁</div>
+                    <h3>Sube Documentación del Proyecto</h3>
+                    <p>Acepta formatos: PDF, DOC, DOCX, XLS, XLSX</p>
+                    <button className="upload-button" onClick={() => showView('upload')}>
+                      Iniciar Carga de Proyecto
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Footer */}
+            <footer className="landing-footer">
+              <div className="section-container">
+                <div className="footer-content">
+                  <div className="footer-section">
+                    <h4>Bioma</h4>
+                    <p>Monitoreo ambiental transparente para un México sostenible.</p>
+                  </div>
+                  <div className="footer-section">
+                    <h4>Contacto</h4>
+                    <p>contacto@bioma.mx</p>
+                    <p>+52 (55) 1234 5678</p>
+                  </div>
+                  <div className="footer-section">
+                    <h4>Enlaces</h4>
+                    <p><a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(aboutSectionRef); }}>Acerca</a></p>
+                    <p><a href="#" onClick={(e) => { e.preventDefault(); showView('news'); }}>Noticias</a></p>
+                  </div>
+                </div>
+                <div className="footer-bottom">
+                  <p>&copy; 2024 Bioma. Todos los derechos reservados.</p>
+                </div>
+              </div>
+            </footer>
+          </div>
+        )}
+
+        {activeView === 'project' && (
+          <div className="view-content project-view" id="project-view">
+            {/* Project detail sections would go here - keeping original structure */}
+            <div className="map-container">
+              <aside className="sidebar">
+                <section className="section">
+                  <h2 className="section-heading">Proyecto</h2>
+                  <div className="meta-grid">
+                    <div className="meta-item">
+                      <span className="meta-label">Nombre</span>
+                      <span className="meta-value">Carretera Federal 85 - Tramo Norte</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Estado</span>
+                      <span className="meta-value status-active">En Progreso</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Inicio</span>
+                      <span className="meta-value">15 Enero 2024</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Fin Estimado</span>
+                      <span className="meta-value">30 Diciembre 2025</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="section">
+                  <h2 className="section-heading">Empresa</h2>
+                  <div className="company-card">
+                    <div className="company-header">
+                      <div className="company-avatar">CN</div>
+                      <div className="company-info">
+                        <h3 className="company-name">Constructora del Norte S.A.</h3>
+                        <p className="company-detail">RFC: CDN850315AB2</p>
+                      </div>
+                    </div>
+                    <div className="company-meta">
+                      <div className="company-stat">
+                        <span className="stat-label">Proyectos Activos</span>
+                        <span className="stat-value">12</span>
+                      </div>
+                      <div className="company-stat">
+                        <span className="stat-label">Tasa de Cumplimiento</span>
+                        <span className="stat-value status-warning">78%</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="section">
+                  <h2 className="section-heading">Región Afectada</h2>
+                  <div className="meta-grid">
+                    <div className="meta-item">
+                      <span className="meta-label">Estado</span>
+                      <span className="meta-value">Nuevo León</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Municipio</span>
+                      <span className="meta-value">Monterrey, San Pedro</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Área Total</span>
+                      <span className="meta-value">245 hectáreas</span>
+                    </div>
+                    <div className="meta-item">
+                      <span className="meta-label">Zonas Protegidas</span>
+                      <span className="meta-value status-warning">2 cercanas</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="section">
+                  <h2 className="section-heading">Análisis Ambiental</h2>
+                  <div className="alert alert-warning">
+                    <div className="alert-icon">⚠</div>
+                    <div className="alert-content">
+                      <h3 className="alert-title">Advertencia de Cumplimiento</h3>
+                      <p className="alert-message">
+                        Actividad de construcción detectada a 150m de zona protegida. Requiere revisión inmediata.
+                      </p>
+                      <span className="alert-time">Última actualización: Hace 2 horas</span>
+                    </div>
+                  </div>
+
+                  <div className="metrics-grid">
+                    <div className="metric-card">
+                      <span className="metric-label">Deforestación</span>
+                      <span className="metric-value status-violation">23 ha</span>
+                    </div>
+                    <div className="metric-card">
+                      <span className="metric-label">Erosión del Suelo</span>
+                      <span className="metric-value status-warning">Media</span>
+                    </div>
+                    <div className="metric-card">
+                      <span className="metric-label">Calidad del Agua</span>
+                      <span className="metric-value status-active">Normal</span>
+                    </div>
+      </div>
+                </section>
+
+                <button className="btn btn-primary">
+                  <span>Generar Reporte Completo</span>
+                  <span className="btn-icon">→</span>
+        </button>
+              </aside>
+
+              <div className="map-area">
+                <div className="map-controls">
+                  <div className="control-group">
+                    <button className="btn-icon-only" title="Zoom In">+</button>
+                    <button className="btn-icon-only" title="Zoom Out">−</button>
+                    <button className="btn-icon-only" title="Reset View">⊙</button>
+                  </div>
+                  <div className="view-selector">
+                    <button className="view-option active">Satelital</button>
+                    <button className="view-option">Mapa</button>
+                    <button className="view-option">Terreno</button>
+                  </div>
+                  <div className="layer-toggles">
+                    <label className="toggle-label">
+                      <input type="checkbox" defaultChecked /> Zona de Trabajo
+                    </label>
+                    <label className="toggle-label">
+                      <input type="checkbox" defaultChecked /> Zonas Protegidas
+                    </label>
+                    <label className="toggle-label">
+                      <input type="checkbox" /> Límites Municipales
+                    </label>
+                  </div>
+                </div>
+
+                <div className="map-viewport">
+                  <div className="map-placeholder">
+                    <p>Vista del mapa satelital aquí</p>
+                  </div>
+                </div>
+
+                <div className="timeline">
+                  <div className="timeline-header">
+                    <h3>Línea de Tiempo</h3>
+                    <div className="timeline-controls">
+                      <button className="btn-sm">◀</button>
+                      <span className="timeline-date">Marzo 2024</span>
+                      <button className="btn-sm">▶</button>
+                    </div>
+                  </div>
+                  <div className="timeline-track">
+                    <div className="timeline-marker active" style={{left: '10%'}} data-date="Ene 2024"></div>
+                    <div className="timeline-marker active" style={{left: '30%'}} data-date="Feb 2024"></div>
+                    <div className="timeline-marker active" style={{left: '50%'}} data-date="Mar 2024"></div>
+                    <div className="timeline-marker" style={{left: '70%'}} data-date="Abr 2024"></div>
+                    <div className="timeline-marker" style={{left: '90%'}} data-date="May 2024"></div>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <aside className="metrics-panel">
-              <h3 style={{fontFamily: 'var(--font-display)', fontSize: '1.3rem', marginBottom: '1.5rem'}}>Impact Metrics</h3>
-              
-              <div className="metric">
-                <div className="metric-label">Affected Area</div>
+          </div>
+        )}
+
+        {activeView === 'company' && (
+          <div className="view-content company-view" id="company-view">
+            {/* Keep original company view structure */}
+            <div className="company-header-section">
+              <div className="company-profile">
+                <div className="company-avatar-large">CN</div>
                 <div>
-                  <span className="metric-value">847</span>
-                  <span className="metric-unit">hectares</span>
-                </div>
-                <div className="trend">↑ Expanding</div>
-              </div>
-              
-              <div className="metric">
-                <div className="metric-label">Vegetation Loss</div>
-                <div>
-                  <span className="metric-value">32%</span>
-                </div>
-                <div className="trend">↑ Increasing</div>
-              </div>
-              
-              <div className="metric">
-                <div className="metric-label">Water Body Change</div>
-                <div>
-                  <span className="metric-value">-18%</span>
-                </div>
-                <div className="trend">↓ Declining</div>
-              </div>
-              
-              <div className="metric">
-                <div className="metric-label">Overall Trend</div>
-                <div>
-                  <span className="metric-value" style={{fontSize: '1.2rem', color: 'var(--alert-high)'}}>Degrading</span>
+                  <h1>Constructora del Norte S.A.</h1>
+                  <p className="company-tagline">Empresa de construcción e infraestructura</p>
+                  <div className="company-badges">
+                    <span className="badge">Certificada SEMARNAT</span>
+                    <span className="badge badge-warning">En Supervisión</span>
+                  </div>
                 </div>
               </div>
-              
-              <div style={{marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--border)'}}>
-                <button className="download-button" style={{width: '100%'}} onClick={() => showView('report')}>
-                  Generate Full Report
+            </div>
+
+            <div className="content-grid">
+              <section className="section">
+                <h2 className="section-heading">Información General</h2>
+                <div className="meta-grid">
+                  <div className="meta-item">
+                    <span className="meta-label">RFC</span>
+                    <span className="meta-value">CDN850315AB2</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="meta-label">Fundada</span>
+                    <span className="meta-value">1985</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="meta-label">Sede</span>
+                    <span className="meta-value">Monterrey, Nuevo León</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="meta-label">Empleados</span>
+                    <span className="meta-value">~500</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Métricas de Cumplimiento</h2>
+                <div className="metrics-grid">
+                  <div className="metric-card">
+                    <span className="metric-label">Proyectos Totales</span>
+                    <span className="metric-value">42</span>
+                  </div>
+                  <div className="metric-card">
+                    <span className="metric-label">Activos</span>
+                    <span className="metric-value">12</span>
+                  </div>
+                  <div className="metric-card">
+                    <span className="metric-label">Completados</span>
+                    <span className="metric-value">28</span>
+                  </div>
+                  <div className="metric-card">
+                    <span className="metric-label">Tasa de Cumplimiento</span>
+                    <span className="metric-value status-warning">78%</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Proyectos Activos</h2>
+                <div className="project-list">
+                  <div className="project-item">
+                    <div className="project-item-header">
+                      <h3>Carretera Federal 85 - Tramo Norte</h3>
+                      <span className="status-badge status-warning">Advertencia</span>
+                    </div>
+                    <p className="project-item-detail">Nuevo León · 245 hectáreas · Activo desde Ene 2024</p>
+                  </div>
+                  <div className="project-item">
+                    <div className="project-item-header">
+                      <h3>Puente Vehicular Sur</h3>
+                      <span className="status-badge status-active">En Regla</span>
+                    </div>
+                    <p className="project-item-detail">Tamaulipas · 120 hectáreas · Activo desde Mar 2024</p>
+                  </div>
+                  <div className="project-item">
+                    <div className="project-item-header">
+                      <h3>Desarrollo Residencial Las Palmas</h3>
+                      <span className="status-badge status-active">En Regla</span>
+                    </div>
+                    <p className="project-item-detail">Nuevo León · 85 hectáreas · Activo desde Feb 2024</p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Historial de Violaciones</h2>
+                <div className="alert alert-violation">
+                  <div className="alert-icon">✕</div>
+                  <div className="alert-content">
+                    <h3 className="alert-title">Violación Ambiental</h3>
+                    <p className="alert-message">
+                      Proyecto "Autopista del Sol" excedió límites de zona de trabajo aprobada por 12 hectáreas.
+                    </p>
+                    <span className="alert-time">Septiembre 2023 · Multa aplicada: $2,500,000 MXN</span>
+                  </div>
+                </div>
+                <div className="alert alert-warning">
+                  <div className="alert-icon">⚠</div>
+                  <div className="alert-content">
+                    <h3 className="alert-title">Advertencia de Cumplimiento</h3>
+                    <p className="alert-message">
+                      Construcción cercana a zona protegida en "Parque Industrial Norte".
+                    </p>
+                    <span className="alert-time">Marzo 2024 · En revisión</span>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'region' && (
+          <div className="view-content region-view" id="region-view">
+            {/* Keep original region view structure */}
+            <div className="region-header">
+              <h1>Nuevo León</h1>
+              <div className="region-stats">
+                <div className="stat-pill">
+                  <span className="stat-pill-value">18</span>
+                  <span className="stat-pill-label">Proyectos Activos</span>
+                </div>
+                <div className="stat-pill">
+                  <span className="stat-pill-value">3</span>
+                  <span className="stat-pill-label">En Violación</span>
+                </div>
+                <div className="stat-pill">
+                  <span className="stat-pill-value">1,240 ha</span>
+                  <span className="stat-pill-label">Área Impactada</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="content-grid">
+              <section className="section">
+                <h2 className="section-heading">Zonas Protegidas</h2>
+                <div className="protected-zones-list">
+                  <div className="zone-card">
+                    <h3>Parque Nacional Cumbres de Monterrey</h3>
+                    <p className="zone-detail">177,395 hectáreas · Federal</p>
+                    <div className="zone-status">
+                      <span className="status-badge status-violation">2 proyectos cercanos en violación</span>
+                    </div>
+                  </div>
+                  <div className="zone-card">
+                    <h3>Área Natural Protegida La Estanzuela</h3>
+                    <p className="zone-detail">550 hectáreas · Estatal</p>
+                    <div className="zone-status">
+                      <span className="status-badge status-active">Sin amenazas detectadas</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Proyectos por Municipio</h2>
+                <div className="municipality-grid">
+                  <div className="municipality-card">
+                    <h3>Monterrey</h3>
+                    <div className="municipality-stats">
+                      <span>7 proyectos activos</span>
+                      <span className="status-warning">1 advertencia</span>
+                    </div>
+                  </div>
+                  <div className="municipality-card">
+                    <h3>San Pedro Garza García</h3>
+                    <div className="municipality-stats">
+                      <span>4 proyectos activos</span>
+                      <span className="status-active">Todos en regla</span>
+                    </div>
+                  </div>
+                  <div className="municipality-card">
+                    <h3>Apodaca</h3>
+                    <div className="municipality-stats">
+                      <span>5 proyectos activos</span>
+                      <span className="status-violation">2 violaciones</span>
+                    </div>
+                  </div>
+                  <div className="municipality-card">
+                    <h3>Guadalupe</h3>
+                    <div className="municipality-stats">
+                      <span>2 proyectos activos</span>
+                      <span className="status-active">Todos en regla</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Alertas Recientes</h2>
+                <div className="alerts-timeline">
+                  <div className="alert alert-violation">
+                    <div className="alert-icon">✕</div>
+                    <div className="alert-content">
+                      <h3 className="alert-title">Violación Detectada</h3>
+                      <p className="alert-message">
+                        Proyecto en Apodaca excedió límites aprobados e ingresó a zona de amortiguamiento.
+                      </p>
+                      <span className="alert-time">Hace 3 días</span>
+                    </div>
+      </div>
+                  <div className="alert alert-warning">
+                    <div className="alert-icon">⚠</div>
+                    <div className="alert-content">
+                      <h3 className="alert-title">Advertencia de Proximidad</h3>
+                      <p className="alert-message">
+                        Construcción en Monterrey se aproxima a límite de zona protegida.
+                      </p>
+                      <span className="alert-time">Hace 1 semana</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
+
+        {activeView === 'report' && (
+          <div className="view-content report-view" id="report-view">
+            {/* Keep original report view structure */}
+            <div className="report-header">
+              <h1>Generar Reporte</h1>
+              <p className="report-subtitle">Crea reportes personalizados sobre proyectos y cumplimiento ambiental</p>
+            </div>
+
+            <div className="report-form">
+              <section className="section">
+                <h2 className="section-heading">Tipo de Reporte</h2>
+                <div className="radio-group">
+                  <label className="radio-card">
+                    <input type="radio" name="reportType" value="project" defaultChecked />
+                    <div className="radio-card-content">
+                      <h3>Reporte de Proyecto</h3>
+                      <p>Análisis detallado de un proyecto específico</p>
+                    </div>
+                  </label>
+                  <label className="radio-card">
+                    <input type="radio" name="reportType" value="company" />
+                    <div className="radio-card-content">
+                      <h3>Reporte de Empresa</h3>
+                      <p>Historial y métricas de una empresa constructora</p>
+                    </div>
+                  </label>
+                  <label className="radio-card">
+                    <input type="radio" name="reportType" value="region" />
+                    <div className="radio-card-content">
+                      <h3>Reporte Regional</h3>
+                      <p>Análisis de proyectos en un estado o región</p>
+                    </div>
+                  </label>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Parámetros</h2>
+                <div className="form-grid">
+                  <div className="form-field">
+                    <label htmlFor="reportEntity">Entidad</label>
+                    <select id="reportEntity" className="form-select">
+                      <option>Seleccionar proyecto...</option>
+                      <option>Carretera Federal 85 - Tramo Norte</option>
+                      <option>Metro Línea 12 Extension</option>
+                      <option>Puente Vehicular Sur</option>
+                    </select>
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="reportPeriod">Período</label>
+                    <select id="reportPeriod" className="form-select">
+                      <option>Último mes</option>
+                      <option>Últimos 3 meses</option>
+                      <option>Últimos 6 meses</option>
+                      <option>Último año</option>
+                      <option>Todo el historial</option>
+                    </select>
+                  </div>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Incluir en Reporte</h2>
+                <div className="checkbox-group">
+                  <label className="checkbox-label">
+                    <input type="checkbox" defaultChecked /> Resumen ejecutivo
+                  </label>
+                  <label className="checkbox-label">
+                    <input type="checkbox" defaultChecked /> Imágenes satelitales
+                  </label>
+                  <label className="checkbox-label">
+                    <input type="checkbox" defaultChecked /> Análisis de cumplimiento
+                  </label>
+                  <label className="checkbox-label">
+                    <input type="checkbox" /> Comparativa histórica
+                  </label>
+                  <label className="checkbox-label">
+                    <input type="checkbox" /> Datos de zonas protegidas
+                  </label>
+                  <label className="checkbox-label">
+                    <input type="checkbox" /> Recomendaciones
+                  </label>
+                </div>
+              </section>
+
+              <section className="section">
+                <h2 className="section-heading">Formato de Exportación</h2>
+                <div className="radio-group-inline">
+                  <label className="radio-label">
+                    <input type="radio" name="format" value="pdf" defaultChecked /> PDF
+                  </label>
+                  <label className="radio-label">
+                    <input type="radio" name="format" value="excel" /> Excel
+                  </label>
+                  <label className="radio-label">
+                    <input type="radio" name="format" value="word" /> Word
+                  </label>
+                </div>
+              </section>
+
+              <div className="form-actions">
+                <button className="btn btn-secondary">Vista Previa</button>
+                <button className="btn btn-primary">
+                  <span>Generar Reporte</span>
+                  <span className="btn-icon">→</span>
                 </button>
               </div>
-            </aside>
+            </div>
           </div>
-          
-          <div className="transparency-note">
-            <p><strong>Methodology Note:</strong> Risk levels are determined through automated analysis of satellite imagery measuring vegetation cover change, water body alteration, soil disruption, and project footprint expansion. All metrics are calculated using standardized remote sensing indices applied to Sentinel-2 multispectral data.</p>
-          </div>
-        </div>
-      </div>
+        )}
 
-      {/* Company Profile View */}
-      <div className={`view ${activeView === 'company' ? 'active' : ''}`}>
-        <div className="company-profile">
-          <div className="breadcrumb">
-            <a href="#" onClick={(e) => { e.preventDefault(); showView('map'); }}>Map</a> / Companies / Minera del Norte S.A.
-          </div>
-          
-          <div className="company-header">
-            <h2>Minera del Norte S.A.</h2>
-            <p style={{fontSize: '1.1rem', opacity: 0.9, marginBottom: '2rem'}}>
-              Mining and resource extraction company operating across multiple regions
-            </p>
-            
-            <div className="company-stats">
-              <div className="stat-card">
-                <div className="stat-label">Total Projects</div>
-                <div className="stat-value">7</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">High Risk</div>
-                <div className="stat-value" style={{color: 'var(--alert-high)'}}>3</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">Medium Risk</div>
-                <div className="stat-value" style={{color: 'var(--alert-medium)'}}>3</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-label">Total Area</div>
-                <div className="stat-value">3,240<span style={{fontSize: '1rem', fontWeight: 400, marginLeft: '0.5rem'}}>ha</span></div>
-              </div>
+        {activeView === 'upload' && (
+          <div className="view-content upload-view" id="upload-view">
+            <div className="report-header">
+              <h1>Subir Nuevo Proyecto</h1>
+              <p className="report-subtitle">Proporciona la documentación del proyecto para agregarlo al sistema de monitoreo</p>
             </div>
-          </div>
-          
-          <h3 style={{fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--earth-dark)', marginBottom: '2rem'}}>
-            Monitored Projects
-          </h3>
-          
-          <div className="projects-grid">
-            <div className="project-card" onClick={() => showView('project')}>
-              <div className="risk-badge high" style={{display: 'inline-block', marginBottom: '1rem'}}>High Risk</div>
-              <h4>Copper Mining Expansion - Río Verde</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Expansion covering 847 hectares with significant vegetation loss detected.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Antofagasta Region</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Mar 2024</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge high" style={{display: 'inline-block', marginBottom: '1rem'}}>High Risk</div>
-              <h4>Lithium Extraction Site - Salar Grande</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Active lithium brine extraction operations affecting salt flat ecosystem.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Tarapacá Region</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Jan 2024</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge medium" style={{display: 'inline-block', marginBottom: '1rem'}}>Medium Risk</div>
-              <h4>Gold Mine Operations - Cerro Azul</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Established operations with moderate ongoing environmental footprint.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Atacama Region</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Jun 2023</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge medium" style={{display: 'inline-block', marginBottom: '1rem'}}>Medium Risk</div>
-              <h4>Processing Facility - Valle Sur</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Ore processing plant with visible landscape modification.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Antofagasta Region</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Sep 2023</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge medium" style={{display: 'inline-block', marginBottom: '1rem'}}>Medium Risk</div>
-              <h4>Exploration Site - Quebrada Norte</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Early-stage exploration with road construction and survey activity.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Coquimbo Region</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Dec 2024</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge low" style={{display: 'inline-block', marginBottom: '1rem'}}>Low Risk</div>
-              <h4>Closed Mine Restoration - Pampa Verde</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Rehabilitation project showing positive environmental recovery.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Atacama Region</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Apr 2024</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="transparency-note" style={{marginTop: '3rem'}}>
-            <p><strong>Company Profile Purpose:</strong> This view aggregates all projects associated with a single organization to enable pattern recognition and comparative analysis. It allows citizens and oversight bodies to assess cumulative environmental impacts and identify systemic practices.</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Region Overview View */}
-      <div className={`view ${activeView === 'region' ? 'active' : ''}`}>
-        <div className="region-overview">
-          <div className="breadcrumb">
-            <a href="#" onClick={(e) => { e.preventDefault(); showView('map'); }}>Map</a> / Regions / Antofagasta Region
-          </div>
-          
-          <div className="region-header">
-            <div className="region-map">
-              <div className="map-overlay"></div>
-              <div className="project-markers">
-                <div className="project-marker high" style={{top: '30%', left: '20%'}}></div>
-                <div className="project-marker medium" style={{top: '50%', left: '60%'}}></div>
-                <div className="project-marker medium" style={{top: '70%', left: '40%'}}></div>
-                <div className="project-marker low" style={{top: '40%', left: '75%'}}></div>
-              </div>
-            </div>
-            
-            <div className="region-info">
-              <h2>Antofagasta Region</h2>
-              <p style={{fontSize: '1.1rem', color: 'var(--ink-light)', lineHeight: 1.7, marginBottom: '2rem'}}>
-                Northern region with significant mining activity. Known for copper and lithium extraction. Characterized by arid climate and sensitive desert ecosystems.
-              </p>
-              
-              <div className="region-metrics">
-                <div className="region-metric">
-                  <div className="metric-label">Active Projects</div>
-                  <div className="metric-value">12</div>
-                </div>
-                <div className="region-metric">
-                  <div className="metric-label">High Risk</div>
-                  <div className="metric-value" style={{color: 'var(--alert-high)'}}>5</div>
-                </div>
-                <div className="region-metric">
-                  <div className="metric-label">Total Affected Area</div>
-                  <div>
-                    <span className="metric-value" style={{fontSize: '1.8rem'}}>5,420</span>
-                    <span className="metric-unit">hectares</span>
+            <div className="report-form">
+              <section className="section">
+                <h2 className="section-heading">Información Básica</h2>
+                <div className="form-grid">
+                  <div className="form-field">
+                    <label htmlFor="projectName">Nombre del Proyecto</label>
+                    <input type="text" id="projectName" className="form-input" placeholder="Ej: Carretera Federal 85" />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="projectCompany">Empresa Responsable</label>
+                    <input type="text" id="projectCompany" className="form-input" placeholder="Nombre de la empresa" />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="projectState">Estado</label>
+                    <select id="projectState" className="form-select">
+                      <option>Seleccionar estado...</option>
+                      <option>Nuevo León</option>
+                      <option>Ciudad de México</option>
+                      <option>Jalisco</option>
+                      <option>Veracruz</option>
+                    </select>
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="projectCategory">Categoría</label>
+                    <select id="projectCategory" className="form-select">
+                      <option>Seleccionar categoría...</option>
+                      <option>Infraestructura</option>
+                      <option>Transporte</option>
+                      <option>Desarrollo Urbano</option>
+                      <option>Medio Ambiente</option>
+                      <option>Turismo</option>
+                    </select>
                   </div>
                 </div>
-                <div className="region-metric">
-                  <div className="metric-label">Companies Operating</div>
-                  <div className="metric-value">8</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <h3 style={{fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--earth-dark)', marginBottom: '2rem', marginTop: '3rem'}}>
-            Projects in This Region
-          </h3>
-          
-          <div className="projects-grid">
-            <div className="project-card" onClick={() => showView('project')}>
-              <div className="risk-badge high" style={{display: 'inline-block', marginBottom: '1rem'}}>High Risk</div>
-              <h4>Copper Mining Expansion - Río Verde</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Major expansion with 847 hectares affected and significant vegetation loss.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Minera del Norte S.A.</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Mar 2024</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge medium" style={{display: 'inline-block', marginBottom: '1rem'}}>Medium Risk</div>
-              <h4>Industrial Port Expansion</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Coastal infrastructure development with marine habitat concerns.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Puerto Norte Corp.</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Jul 2024</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge medium" style={{display: 'inline-block', marginBottom: '1rem'}}>Medium Risk</div>
-              <h4>Solar Farm Development - Pampa Solar</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Large-scale renewable energy installation with land use change.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Energía Verde S.A.</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Oct 2024</span>
-              </div>
-            </div>
-            
-            <div className="project-card">
-              <div className="risk-badge low" style={{display: 'inline-block', marginBottom: '1rem'}}>Low Risk</div>
-              <h4>Water Treatment Facility</h4>
-              <p style={{color: 'var(--ink-light)', margin: '1rem 0'}}>
-                Municipal infrastructure with minimal environmental footprint.
-              </p>
-              <div className="card-meta">
-                <span className="card-location">Municipal Government</span>
-                <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.85rem'}}>Since Nov 2024</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="transparency-note" style={{marginTop: '3rem'}}>
-            <p><strong>Regional Analysis Purpose:</strong> Regional views aggregate project data within administrative boundaries to support comparative analysis between regions and identify geographic patterns of environmental change. This enables regional planning authorities and communities to assess cumulative impacts at the territorial level.</p>
-          </div>
-        </div>
-      </div>
+              </section>
 
-      {/* Report View */}
-      <div className={`view ${activeView === 'report' ? 'active' : ''}`}>
-        <div className="report-container">
-          <div className="breadcrumb">
-            <a href="#" onClick={(e) => { e.preventDefault(); showView('map'); }}>Map</a> / <a href="#" onClick={(e) => { e.preventDefault(); showView('project'); }}>Copper Mining Expansion - Río Verde</a> / Environmental Monitoring Report
-          </div>
-          
-          <div className="report-header">
-            <h2>Environmental Monitoring Report</h2>
-            <div style={{marginTop: '1rem'}}>
-              <strong style={{fontSize: '1.2rem', color: 'var(--earth-dark)'}}>Copper Mining Expansion - Río Verde</strong>
-            </div>
-            <div className="report-date">Reporting Period: October 2025 - January 2026</div>
-            <div className="report-date">Report Generated: January 30, 2026</div>
-          </div>
-          
-          <div className="report-section">
-            <h3>Project Overview</h3>
-            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', margin: '2rem 0'}}>
-              <div>
-                <div className="metric-label">Responsible Party</div>
-                <div style={{fontWeight: 600, color: 'var(--earth-dark)'}}>Minera del Norte S.A.</div>
-              </div>
-              <div>
-                <div className="metric-label">Location</div>
-                <div style={{fontWeight: 600, color: 'var(--earth-dark)'}}>Antofagasta Region</div>
-              </div>
-              <div>
-                <div className="metric-label">Monitoring Status</div>
-                <div className="risk-badge high" style={{display: 'inline-block'}}>High Risk</div>
+              <section className="section">
+                <h2 className="section-heading">Cargar Documentos</h2>
+                <div className="upload-zone">
+                  <div className="upload-icon-large">📁</div>
+                  <h3>Arrastra archivos aquí</h3>
+                  <p>o haz clic para seleccionar</p>
+                  <button className="btn btn-secondary" style={{marginTop: '1rem'}}>Seleccionar Archivos</button>
+                  <p className="upload-hint">Formatos aceptados: PDF, DOC, DOCX, XLS, XLSX (máx. 50MB)</p>
+                </div>
+              </section>
+
+              <div className="form-actions">
+                <button className="btn btn-secondary" onClick={() => showView('landing')}>Cancelar</button>
+                <button className="btn btn-primary">
+                  <span>Enviar Proyecto</span>
+                  <span className="btn-icon">→</span>
+                </button>
               </div>
             </div>
-            <p style={{lineHeight: 1.8, marginTop: '1.5rem'}}>
-              This report documents observed environmental changes at the Copper Mining Expansion project site over a 3-month monitoring period. Analysis is based on systematic processing of Sentinel-2 satellite imagery captured at 5-day intervals and aggregated into weekly summaries.
-            </p>
           </div>
-          
-          <div className="report-section">
-            <h3>Satellite Imagery Comparison</h3>
-            <p style={{marginBottom: '2rem', color: 'var(--ink-light)'}}>
-              Visual comparison of site conditions at the beginning and end of the monitoring period.
-            </p>
-            
-            <div className="comparison-grid">
-              <div className="comparison-image">
-                <div className="comparison-label">October 5, 2025</div>
-              </div>
-              <div className="comparison-image">
-                <div className="comparison-label">January 25, 2026</div>
-              </div>
+        )}
+
+        {activeView === 'news' && (
+          <div className="view-content news-view">
+            <div className="report-header">
+              <h1>Últimas Noticias</h1>
+              <p className="report-subtitle">Actualizaciones sobre proyectos y regulaciones ambientales</p>
             </div>
-            
-            <p style={{marginTop: '2rem', lineHeight: 1.8}}>
-              The imagery reveals substantial expansion of mining operations into previously undisturbed areas. Notable changes include removal of native vegetation cover, construction of new access roads, and expansion of open-pit excavation zones. The affected footprint has grown from approximately 620 hectares to 847 hectares during this period.
-            </p>
-          </div>
-          
-          <div className="report-section">
-            <h3>Measured Environmental Changes</h3>
-            
-            <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem', margin: '2rem 0'}}>
-              <div style={{border: '2px solid var(--border)', padding: '2rem', borderRadius: '8px'}}>
-                <div className="metric-label">Affected Area Expansion</div>
-                <div className="metric-value">+227<span className="metric-unit">hectares</span></div>
-                <div className="trend" style={{marginTop: '1rem'}}>+36.6% increase</div>
-              </div>
-              
-              <div style={{border: '2px solid var(--border)', padding: '2rem', borderRadius: '8px'}}>
-                <div className="metric-label">Vegetation Cover Loss</div>
-                <div className="metric-value">32%</div>
-                <div className="trend" style={{marginTop: '1rem'}}>Significant reduction</div>
-              </div>
-              
-              <div style={{border: '2px solid var(--border)', padding: '2rem', borderRadius: '8px'}}>
-                <div className="metric-label">Surface Water Change</div>
-                <div className="metric-value">-18%</div>
-                <div className="trend" style={{marginTop: '1rem'}}>Declining</div>
-              </div>
-              
-              <div style={{border: '2px solid var(--border)', padding: '2rem', borderRadius: '8px'}}>
-                <div className="metric-label">Soil Disturbance</div>
-                <div className="metric-value">High</div>
-                <div className="trend" style={{marginTop: '1rem'}}>Extensive excavation</div>
-              </div>
+
+            <div className="content-grid">
+              <section className="section">
+                <div className="news-grid">
+                  <article className="news-card">
+                    <div className="news-date">25 Enero 2024</div>
+                    <h3>Nueva Regulación Ambiental para Proyectos en Zonas Costeras</h3>
+                    <p>SEMARNAT anuncia lineamientos más estrictos para construcciones cerca de manglares y ecosistemas marinos.</p>
+                    <a href="#" className="news-link">Leer más →</a>
+                  </article>
+                  <article className="news-card">
+                    <div className="news-date">20 Enero 2024</div>
+                    <h3>Bioma Integra Nueva Tecnología de Monitoreo Satelital</h3>
+                    <p>Mejoras en la resolución de imágenes permiten detectar cambios ambientales con mayor precisión.</p>
+                    <a href="#" className="news-link">Leer más →</a>
+                  </article>
+                  <article className="news-card">
+                    <div className="news-date">15 Enero 2024</div>
+                    <h3>Proyecto en Quintana Roo Recibe Reconocimiento por Cumplimiento</h3>
+                    <p>Desarrollo turístico en Tulum destacado como modelo de construcción sostenible.</p>
+                    <a href="#" className="news-link">Leer más →</a>
+                  </article>
+                </div>
+              </section>
             </div>
-            
-            <p style={{lineHeight: 1.8, marginTop: '2rem'}}>
-              Spectral analysis indicates removal of native desert scrub vegetation across expanding work zones. Normalized Difference Vegetation Index (NDVI) values show consistent decline in areas adjacent to mining operations. Surface water bodies in the watershed show reduced extent, likely reflecting altered hydrology from site preparation and water extraction for industrial use.
-            </p>
           </div>
-          
-          <div className="report-section">
-            <h3>Methodology</h3>
-            <p style={{lineHeight: 1.8}}>
-              This report is based on automated analysis of multispectral satellite imagery from the European Space Agency's Sentinel-2 mission, processed through Google Earth Engine. Data collection occurs approximately every 5 days, with public-facing reports aggregating observations into weekly summaries to account for cloud cover and seasonal variation.
-            </p>
-            <p style={{lineHeight: 1.8, marginTop: '1rem'}}>
-              Environmental metrics are derived from standard remote sensing indices including NDVI (vegetation health), NDWI (water content), and supervised classification algorithms trained to detect land use categories. All measurements are compared against baseline conditions established at project monitoring initiation.
-            </p>
-          </div>
-          
-          <div className="transparency-note">
-            <p><strong>Purpose of Public Reports:</strong> These reports provide factual documentation of observable environmental changes over time. They are designed to serve as evidence-based resources for public accountability, enabling citizens, journalists, researchers, and oversight bodies to access objective information about project impacts. Reports do not make legal determinations or predictive assessments beyond documented observations.</p>
-          </div>
-          
-          <div style={{textAlign: 'center', marginTop: '3rem'}}>
-            <button className="download-button">
-              Download Full Report (PDF)
-            </button>
-            <p style={{marginTop: '1rem', color: 'var(--ink-light)', fontSize: '0.9rem'}}>
-              This report is publicly accessible and may be freely shared and cited.
-            </p>
-          </div>
-        </div>
-      </div>
+        )}
+      </main>
     </div>
   )
 }
