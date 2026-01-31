@@ -337,7 +337,7 @@ const MexicoMap = ({ onProjectSelect, selectedProject, onProjectClose, searchQue
 
               <button
                 onClick={() => {
-                  window.location.hash = 'project';
+                  window.location.hash = `/project/${selectedProject.id}`;
                 }}
                 style={{
                   width: '100%',

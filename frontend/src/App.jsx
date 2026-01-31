@@ -1,6 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import MexicoMap from './components/Map/MexicoMap'
+import ProjectDetailMap from './components/Map/ProjectDetailMap'
+import { getProjectById } from './data/mock-projects'
 
 function App() {
   const [activeView, setActiveView] = useState('landing')
@@ -21,11 +23,51 @@ function App() {
   const showView = (view) => {
     setActiveView(view)
     setSelectedProject(null)
+    if (view === 'landing') {
+      window.location.hash = ''
+      return
+    }
+    window.location.hash = `/${view}`
   }
 
   const scrollToSection = (ref) => {
     ref.current?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const rawHash = window.location.hash.replace(/^#/, '')
+      if (!rawHash) {
+        setActiveView('landing')
+        setSelectedProject(null)
+        return
+      }
+
+      const normalized = rawHash.startsWith('/') ? rawHash.slice(1) : rawHash
+      const [route, projectId] = normalized.split('/')
+
+      if (route === 'project') {
+        if (projectId) {
+          const project = getProjectById(projectId)
+          if (project) {
+            setSelectedProject(project)
+            setActiveView('project')
+            return
+          }
+        }
+        setSelectedProject(null)
+        setActiveView('project')
+        return
+      }
+
+      setSelectedProject(null)
+      setActiveView(route)
+    }
+
+    handleHashChange()
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
 
   const handleProjectClick = (project) => {
     setSelectedProject(project)
@@ -37,6 +79,16 @@ function App() {
 
   const handleFilterChange = (filterType, value) => {
     setFilters(prev => ({ ...prev, [filterType]: value }))
+  }
+
+  const getRiskLabel = (riskState) => {
+    if (riskState === 'compliant') return 'En regla'
+    if (riskState === 'warning') return 'Advertencia'
+    if (riskState === 'violation') return 'Violación'
+    if (riskState === 'high') return 'Alto'
+    if (riskState === 'medium') return 'Medio'
+    if (riskState === 'low') return 'Bajo'
+    return riskState || 'Sin dato'
   }
 
   return (
@@ -244,162 +296,47 @@ function App() {
         )}
 
         {activeView === 'project' && (
-          <div className="view-content project-view" id="project-view">
-            {/* Project detail sections would go here - keeping original structure */}
-            <div className="map-container">
-              <aside className="sidebar">
-                <section className="section">
-                  <h2 className="section-heading">Proyecto</h2>
-                  <div className="meta-grid">
-                    <div className="meta-item">
-                      <span className="meta-label">Nombre</span>
-                      <span className="meta-value">Carretera Federal 85 - Tramo Norte</span>
-                    </div>
-                    <div className="meta-item">
-                      <span className="meta-label">Estado</span>
-                      <span className="meta-value status-active">En Progreso</span>
-                    </div>
-                    <div className="meta-item">
-                      <span className="meta-label">Inicio</span>
-                      <span className="meta-value">15 Enero 2024</span>
-                    </div>
-                    <div className="meta-item">
-                      <span className="meta-label">Fin Estimado</span>
-                      <span className="meta-value">30 Diciembre 2025</span>
-                    </div>
+          <div className="view-content project-detail-view" id="project-view">
+            {selectedProject ? (
+              <>
+                <div className="project-detail-header">
+                  <h1 className="project-title">{selectedProject.name}</h1>
+                  <p className="project-subtitle">
+                    {selectedProject.state} · {selectedProject.category}
+                  </p>
+                </div>
+                <div className="project-detail-grid">
+                  <div className="project-detail-map">
+                    <ProjectDetailMap project={selectedProject} />
                   </div>
-                </section>
-
-                <section className="section">
-                  <h2 className="section-heading">Empresa</h2>
-                  <div className="company-card">
-                    <div className="company-header">
-                      <div className="company-avatar">CN</div>
-                      <div className="company-info">
-                        <h3 className="company-name">Constructora del Norte S.A.</h3>
-                        <p className="company-detail">RFC: CDN850315AB2</p>
-                      </div>
+                  <div className="project-detail-kpis">
+                    <div className="kpi-card">
+                      <span className="kpi-label">Estado de riesgo</span>
+                      <span className={`kpi-value risk-${selectedProject.riskState}`}>
+                        {getRiskLabel(selectedProject.riskState)}
+                      </span>
                     </div>
-                    <div className="company-meta">
-                      <div className="company-stat">
-                        <span className="stat-label">Proyectos Activos</span>
-                        <span className="stat-value">12</span>
-                      </div>
-                      <div className="company-stat">
-                        <span className="stat-label">Tasa de Cumplimiento</span>
-                        <span className="stat-value status-warning">78%</span>
-                      </div>
+                    <div className="kpi-card">
+                      <span className="kpi-label">Área afectada (pérdida de vegetación)</span>
+                      <span className="kpi-value">{selectedProject.vegetationLoss} ha</span>
                     </div>
-                  </div>
-                </section>
-
-                <section className="section">
-                  <h2 className="section-heading">Región Afectada</h2>
-                  <div className="meta-grid">
-                    <div className="meta-item">
-                      <span className="meta-label">Estado</span>
-                      <span className="meta-value">Nuevo León</span>
+                    <div className="kpi-card">
+                      <span className="kpi-label">Huella de carbono</span>
+                      <span className="kpi-value">{selectedProject.carbonFootprint} t CO2e</span>
                     </div>
-                    <div className="meta-item">
-                      <span className="meta-label">Municipio</span>
-                      <span className="meta-value">Monterrey, San Pedro</span>
+                    <div className="kpi-card">
+                      <span className="kpi-label">Última actualización</span>
+                      <span className="kpi-value">{selectedProject.lastUpdated}</span>
                     </div>
-                    <div className="meta-item">
-                      <span className="meta-label">Área Total</span>
-                      <span className="meta-value">245 hectáreas</span>
-                    </div>
-                    <div className="meta-item">
-                      <span className="meta-label">Zonas Protegidas</span>
-                      <span className="meta-value status-warning">2 cercanas</span>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="section">
-                  <h2 className="section-heading">Análisis Ambiental</h2>
-                  <div className="alert alert-warning">
-                    <div className="alert-icon">⚠</div>
-                    <div className="alert-content">
-                      <h3 className="alert-title">Advertencia de Cumplimiento</h3>
-                      <p className="alert-message">
-                        Actividad de construcción detectada a 150m de zona protegida. Requiere revisión inmediata.
-                      </p>
-                      <span className="alert-time">Última actualización: Hace 2 horas</span>
-                    </div>
-                  </div>
-
-                  <div className="metrics-grid">
-                    <div className="metric-card">
-                      <span className="metric-label">Deforestación</span>
-                      <span className="metric-value status-violation">23 ha</span>
-                    </div>
-                    <div className="metric-card">
-                      <span className="metric-label">Erosión del Suelo</span>
-                      <span className="metric-value status-warning">Media</span>
-                    </div>
-                    <div className="metric-card">
-                      <span className="metric-label">Calidad del Agua</span>
-                      <span className="metric-value status-active">Normal</span>
-                    </div>
-      </div>
-                </section>
-
-                <button className="btn btn-primary">
-                  <span>Generar Reporte Completo</span>
-                  <span className="btn-icon">→</span>
-        </button>
-              </aside>
-
-              <div className="map-area">
-                <div className="map-controls">
-                  <div className="control-group">
-                    <button className="btn-icon-only" title="Zoom In">+</button>
-                    <button className="btn-icon-only" title="Zoom Out">−</button>
-                    <button className="btn-icon-only" title="Reset View">⊙</button>
-                  </div>
-                  <div className="view-selector">
-                    <button className="view-option active">Satelital</button>
-                    <button className="view-option">Mapa</button>
-                    <button className="view-option">Terreno</button>
-                  </div>
-                  <div className="layer-toggles">
-                    <label className="toggle-label">
-                      <input type="checkbox" defaultChecked /> Zona de Trabajo
-                    </label>
-                    <label className="toggle-label">
-                      <input type="checkbox" defaultChecked /> Zonas Protegidas
-                    </label>
-                    <label className="toggle-label">
-                      <input type="checkbox" /> Límites Municipales
-                    </label>
                   </div>
                 </div>
-
-                <div className="map-viewport">
-                  <div className="map-placeholder">
-                    <p>Vista del mapa satelital aquí</p>
-                  </div>
-                </div>
-
-                <div className="timeline">
-                  <div className="timeline-header">
-                    <h3>Línea de Tiempo</h3>
-                    <div className="timeline-controls">
-                      <button className="btn-sm">◀</button>
-                      <span className="timeline-date">Marzo 2024</span>
-                      <button className="btn-sm">▶</button>
-                    </div>
-                  </div>
-                  <div className="timeline-track">
-                    <div className="timeline-marker active" style={{left: '10%'}} data-date="Ene 2024"></div>
-                    <div className="timeline-marker active" style={{left: '30%'}} data-date="Feb 2024"></div>
-                    <div className="timeline-marker active" style={{left: '50%'}} data-date="Mar 2024"></div>
-                    <div className="timeline-marker" style={{left: '70%'}} data-date="Abr 2024"></div>
-                    <div className="timeline-marker" style={{left: '90%'}} data-date="May 2024"></div>
-                  </div>
-                </div>
+              </>
+            ) : (
+              <div className="project-empty-state">
+                <h2>Selecciona un proyecto en el mapa</h2>
+                <p>Haz clic en un punto del mapa para ver el detalle completo.</p>
               </div>
-            </div>
+            )}
           </div>
         )}
 
