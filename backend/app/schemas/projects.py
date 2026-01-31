@@ -17,6 +17,26 @@ class RiskMapResponse(BaseModel):
 
 
 # New schemas for project management
+class ProjectCreate(BaseModel):
+    """Schema for creating a new project"""
+    name: str
+    description: Optional[str] = None
+    region_id: Optional[str] = None
+    company_id: Optional[str] = None
+    monitoring_start_date: Optional[date] = None
+    monitoring_end_date: Optional[date] = None
+    status: str = "active"
+
+
+class ProjectCreateResponse(BaseModel):
+    """Response after creating a project"""
+    id: str
+    name: str
+    status: str
+    risk_label: str
+    created_at: datetime
+
+
 class ProjectListItem(BaseModel):
     """Project item for list view"""
     id: str

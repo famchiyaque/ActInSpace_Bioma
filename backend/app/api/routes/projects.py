@@ -1,13 +1,33 @@
 """Project API routes"""
 
 from fastapi import APIRouter, Depends, HTTPException
-from app.services.projects_service import get_projects_list, get_project_detail
+from app.services.projects_service import get_projects_list, get_project_detail, create_project
 from app.services.runs_service import create_run
-from app.schemas.projects import ProjectsListResponse, ProjectDetailResponse
+from app.schemas.projects import ProjectsListResponse, ProjectDetailResponse, ProjectCreate, ProjectCreateResponse
 from app.schemas.runs import RunCreate, RunCreateResponse
 from app.deps import get_database
 
 router = APIRouter(prefix="/projects", tags=["projects"])
+
+
+@router.post("", response_model=ProjectCreateResponse, status_code=201)
+def create_new_project(project_data: ProjectCreate, db=Depends(get_database)):
+    """
+    Create a new project.
+    
+    Request body:
+    - name: Project name (required)
+    - description: Project description (optional)
+    - region_id: UUID of region (optional)
+    - company_id: UUID of company (optional)
+    - monitoring_start_date: Start date for monitoring (optional)
+    - monitoring_end_date: End date for monitoring (optional)
+    - status: Project status, default 'active' (optional)
+    
+    Returns:
+    - Created project with ID and initial risk_label='unknown'
+    """
+    return create_project(project_data)
 
 
 @router.get("", response_model=ProjectsListResponse)

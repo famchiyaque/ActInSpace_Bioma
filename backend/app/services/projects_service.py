@@ -1,6 +1,7 @@
 """Project service - business logic for project management"""
 
 from typing import List, Optional
+from datetime import datetime
 from fastapi import HTTPException
 from app.db.queries import ProjectQueries, GeomarkerQueries, RunQueries, ReportQueries
 from app.schemas.projects import (
@@ -8,10 +9,38 @@ from app.schemas.projects import (
     ProjectListItem,
     ProjectDetailResponse,
     ProjectDetailData,
+    ProjectCreate,
+    ProjectCreateResponse,
 )
 from app.schemas.common import CompanyBase, RegionBase
 from app.schemas.boundaries import GeomarkerBase, GeomarkerData, GeomarkerDetail, GeomarkerHistory
 from app.schemas.runs import RunHistoryItem, RunDetail, ReportBase
+
+
+def create_project(project_data: ProjectCreate) -> ProjectCreateResponse:
+    """Create a new project"""
+    # Build project dictionary
+    project_dict = {
+        "name": project_data.name,
+        "description": project_data.description,
+        "region_id": project_data.region_id,
+        "company_id": project_data.company_id,
+        "status": project_data.status,
+        "risk_label": "unknown",  # Default risk label
+        "monitoring_start_date": project_data.monitoring_start_date.isoformat() if project_data.monitoring_start_date else None,
+        "monitoring_end_date": project_data.monitoring_end_date.isoformat() if project_data.monitoring_end_date else None,
+    }
+    
+    # Create project in database
+    created = ProjectQueries.create(project_dict)
+    
+    return ProjectCreateResponse(
+        id=created["id"],
+        name=created["name"],
+        status=created["status"],
+        risk_label=created["risk_label"],
+        created_at=created["created_at"]
+    )
 
 
 def get_projects_list() -> ProjectsListResponse:
