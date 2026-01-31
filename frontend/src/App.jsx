@@ -53,7 +53,6 @@ function App() {
               <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(aboutSectionRef); }}>Acerca</a>
               <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(featuresSectionRef); }}>Características</a>
               <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(uploadSectionRef); }}>Subir Proyecto</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); showView('news'); }}>Noticias</a>
             </nav>
           ) : (
             <nav>
@@ -234,7 +233,6 @@ function App() {
                   <div className="footer-section">
                     <h4>Enlaces</h4>
                     <p><a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(aboutSectionRef); }}>Acerca</a></p>
-                    <p><a href="#" onClick={(e) => { e.preventDefault(); showView('news'); }}>Noticias</a></p>
                   </div>
                 </div>
                 <div className="footer-bottom">
@@ -802,39 +800,6 @@ function App() {
           </div>
         )}
 
-        {activeView === 'news' && (
-          <div className="view-content news-view">
-            <div className="report-header">
-              <h1>Últimas Noticias</h1>
-              <p className="report-subtitle">Actualizaciones sobre proyectos y regulaciones ambientales</p>
-            </div>
-
-            <div className="content-grid">
-              <section className="section">
-                <div className="news-grid">
-                  <article className="news-card">
-                    <div className="news-date">25 Enero 2024</div>
-                    <h3>Nueva Regulación Ambiental para Proyectos en Zonas Costeras</h3>
-                    <p>SEMARNAT anuncia lineamientos más estrictos para construcciones cerca de manglares y ecosistemas marinos.</p>
-                    <a href="#" className="news-link">Leer más →</a>
-                  </article>
-                  <article className="news-card">
-                    <div className="news-date">20 Enero 2024</div>
-                    <h3>Bioma Integra Nueva Tecnología de Monitoreo Satelital</h3>
-                    <p>Mejoras en la resolución de imágenes permiten detectar cambios ambientales con mayor precisión.</p>
-                    <a href="#" className="news-link">Leer más →</a>
-                  </article>
-                  <article className="news-card">
-                    <div className="news-date">15 Enero 2024</div>
-                    <h3>Proyecto en Quintana Roo Recibe Reconocimiento por Cumplimiento</h3>
-                    <p>Desarrollo turístico en Tulum destacado como modelo de construcción sostenible.</p>
-                    <a href="#" className="news-link">Leer más →</a>
-                  </article>
-                </div>
-              </section>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   )
