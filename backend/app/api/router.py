@@ -6,6 +6,8 @@ from app.api.routes.alerts import router as alerts_router
 from app.api.routes.boundaries import router as boundaries_router
 from app.api.routes.projects import router as projects_router
 from app.api.routes.runs import router as runs_router
+from app.api.routes.debug_images import router as debug_router
+from app.api.routes.images import router as images_router
 
 api_router = APIRouter()
 
@@ -16,3 +18,5 @@ api_router.include_router(risk_router, tags=["risk-map"])
 api_router.include_router(deforestation_router, tags=["deforestation"])
 api_router.include_router(alerts_router, tags=["alerts"])
 api_router.include_router(boundaries_router, tags=["boundaries"])
+api_router.include_router(debug_router, tags=["debug"])
+api_router.include_router(images_router)

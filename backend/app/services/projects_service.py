@@ -142,16 +142,19 @@ def get_projects_list() -> ProjectsListResponse:
                 for report in reports:
                     if report["report_type"] == "after_image" and report.get("public_url"):
                         latest_image_url = report["public_url"]
-                    break
-            # Fallback to before_image if no after_image
-            if not latest_image_url:
-                for report in reports:
-                    if report["report_type"] == "before_image" and report.get("public_url"):
-                        latest_image_url = report["public_url"]
                         break
+                # Fallback to before_image if no after_image
+                if not latest_image_url:
+                    for report in reports:
+                        if report["report_type"] == "before_image" and report.get("public_url"):
+                            latest_image_url = report["public_url"]
+                            break
         except Exception as e:
             # Log but don't fail if run/report query fails
             print(f"Warning: Could not fetch runs/reports for project {proj['id']}: {e}")
+        
+        # Debug: Log image URLs being sent
+        print(f"[Project {proj['name']}] Images: image_url={proj.get('image_url')}, latest_image_url={latest_image_url}")
         
         projects_list.append(ProjectListItem(
             id=proj["id"],

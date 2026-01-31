@@ -126,11 +126,14 @@ def populate_project_images(project_id: str, days_back: int = 30):
 def update_project_with_images(project_id: str, image_urls: dict):
     """Update project record with satellite image URLs
     
-    Stores the latest image in projects.image_url and optionally
+    Stores the newest image (after_rgb) in projects.image_url and optionally
     stores full image metadata in projects.satellite_images (if it exists).
     """
+    # Use after_rgb as the newest image (current state), fallback to before_rgb
+    newest_image = image_urls.get("after_rgb") or image_urls.get("before_rgb")
+    
     update_payload = {
-        "image_url": image_urls.get("after_rgb") or image_urls.get("before_rgb"),
+        "image_url": newest_image,
         "updated_at": datetime.now().isoformat(),
     }
 

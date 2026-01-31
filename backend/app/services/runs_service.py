@@ -177,8 +177,15 @@ def process_gee_result(gee_data: GEEResultInput) -> GEEResultResponse:
     }
     RunQueries.update(gee_data.run_id, run_update)
     
-    # Update project risk label based on latest analysis
-    ProjectQueries.update(gee_data.project_id, {"risk_label": risk_label})
+    # Update project risk label and newest image based on latest analysis
+    project_update = {"risk_label": risk_label}
+    
+    # Set project's image_url to the newest image (after_rgb) if available
+    newest_image = output_images.get("after_rgb") or output_images.get("before_rgb")
+    if newest_image:
+        project_update["image_url"] = newest_image
+    
+    ProjectQueries.update(gee_data.project_id, project_update)
     
     # Create report entries for frontend to display
     reports_to_create = []
