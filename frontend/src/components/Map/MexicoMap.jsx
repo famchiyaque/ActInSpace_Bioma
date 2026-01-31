@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { getAllProjects } from '../../data/mock-projects';
+import { projectsApi, transformProjectData } from '../../services/api';
 import mexicoGeometry from '../../data/mexico-geometry.json';
 
 // Set your Mapbox token here
@@ -24,9 +25,56 @@ const MexicoMap = ({ onProjectSelect, selectedProject, onProjectClose, searchQue
   const map = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const markersRef = useRef([]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [useBackend, setUseBackend] = useState(true);
 
-  // Get all projects
-  const allProjects = getAllProjects();
+  // Fetch projects from backend or use mock data
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Try to fetch from backend first
+        const response = await projectsApi.getAllProjects();
+        const transformedProjects = response.projects.map(transformProjectData);
+        
+        // Check if any projects have coordinates
+        const projectsWithCoordinates = transformedProjects.filter(p => p.hasCoordinates);
+        
+        if (projectsWithCoordinates.length === 0 && transformedProjects.length > 0) {
+          // Backend has projects but none have coordinates
+          console.warn('Backend projects found but none have coordinates. Falling back to mock data.');
+          const mockProjects = getAllProjects();
+          setProjects(mockProjects);
+          setUseBackend(false);
+          setError(`${transformedProjects.length} proyectos en BD sin coordenadas. Usando datos demo.`);
+        } else {
+          setProjects(transformedProjects);
+          setUseBackend(true);
+          if (projectsWithCoordinates.length < transformedProjects.length) {
+            setError(`${transformedProjects.length - projectsWithCoordinates.length} proyectos sin coordenadas`);
+          }
+        }
+      } catch (err) {
+        console.warn('Backend API unavailable, falling back to mock data:', err.message);
+        // Fall back to mock data if backend is unavailable
+        const mockProjects = getAllProjects();
+        setProjects(mockProjects);
+        setUseBackend(false);
+        setError('Backend no disponible. Usando datos demo.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  // Use fetched projects instead of mock data
+  const allProjects = projects;
 
   // Filter projects based on search and filters
   const filteredProjects = allProjects.filter(project => {
@@ -120,9 +168,14 @@ const MexicoMap = ({ onProjectSelect, selectedProject, onProjectClose, searchQue
 
     // Add markers for filtered projects
     filteredProjects.forEach(project => {
-      const coords = project.workZone.geometry.coordinates[0];
-      const centerLng = coords.reduce((sum, coord) => sum + coord[0], 0) / coords.length;
-      const centerLat = coords.reduce((sum, coord) => sum + coord[1], 0) / coords.length;
+      // Skip projects without coordinates
+      if (!project.hasCoordinates) {
+        console.warn(`Project "${project.name}" has no coordinates, skipping map marker`);
+        return;
+      }
+
+      const centerLng = project.centerLng;
+      const centerLat = project.centerLat;
 
       // Create custom marker element
       const el = document.createElement('div');
@@ -178,6 +231,56 @@ const MexicoMap = ({ onProjectSelect, selectedProject, onProjectClose, searchQue
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {/* Map Container */}
       <div ref={mapContainer} style={{ width: '100%', height: '100%', borderRadius: '12px' }} />
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(255, 255, 255, 0.9)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '12px',
+          zIndex: 5
+        }}>
+          <div style={{
+            width: '50px',
+            height: '50px',
+            border: '4px solid #e5e7eb',
+            borderTop: '4px solid var(--earth-dark)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <p style={{ marginTop: '1rem', color: 'var(--ink)', fontWeight: '500' }}>
+            Cargando proyectos...
+          </p>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {error && !loading && (
+        <div style={{
+          position: 'absolute',
+          top: '1rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#fef3c7',
+          color: '#92400e',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          zIndex: 4,
+          fontSize: '0.9rem',
+          maxWidth: '90%'
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* Project Sidebar */}
       {selectedProject && (

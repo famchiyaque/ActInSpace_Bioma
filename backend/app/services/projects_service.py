@@ -85,6 +85,7 @@ def get_projects_list() -> ProjectsListResponse:
         - Carbon footprint estimation
     """
     projects_data = ProjectQueries.get_all_with_relations()
+    print("Projects data:", projects_data)
     
     projects_list = []
     for proj in projects_data:
@@ -107,35 +108,40 @@ def get_projects_list() -> ProjectsListResponse:
         
         # Get active geomarker
         active_geomarker = None
-        geomarker_data = GeomarkerQueries.get_active_for_project(proj["id"])
-        if geomarker_data:
-            active_geomarker = GeomarkerBase(
-                id=geomarker_data["id"],
-                geomarker_type=geomarker_data["geomarker_type"],
-                geojson=geomarker_data["geojson"]
-            )
+        try:
+            geomarker_data = GeomarkerQueries.get_active_for_project(proj["id"])
+            if geomarker_data:
+                active_geomarker = GeomarkerBase(
+                    id=geomarker_data["id"],
+                    geomarker_type=geomarker_data["geomarker_type"],
+                    geojson=geomarker_data["geojson"]
+                )
+        except Exception as e:
+            # Log but don't fail if geomarker query fails
+            print(f"Warning: Could not fetch geomarker for project {proj['id']}: {e}")
         
         # Get last run
         last_run = None
         carbon_footprint = None
         latest_image_url = None
-        last_run_data = RunQueries.get_last_completed_for_project(proj["id"])
-        if last_run_data:
-            last_run = RunHistoryItem(
-                id=last_run_data["id"],
-                end_date=last_run_data["end_date"],
-                hectares_change=last_run_data.get("hectares_change"),
-                status=last_run_data["status"]
-            )
-            # Calculate carbon footprint: hectares * 400 tonnes CO2/hectare (tropical forest average)
-            if last_run_data.get("hectares_change"):
-                carbon_footprint = last_run_data["hectares_change"] * 400
-            
-            # Get latest photograph from reports (prefer after_image, fallback to before_image)
-            reports = ReportQueries.get_by_run_id(last_run_data["id"])
-            for report in reports:
-                if report["report_type"] == "after_image" and report.get("public_url"):
-                    latest_image_url = report["public_url"]
+        try:
+            last_run_data = RunQueries.get_last_completed_for_project(proj["id"])
+            if last_run_data:
+                last_run = RunHistoryItem(
+                    id=last_run_data["id"],
+                    end_date=last_run_data["end_date"],
+                    hectares_change=last_run_data.get("hectares_change"),
+                    status=last_run_data["status"]
+                )
+                # Calculate carbon footprint: hectares * 400 tonnes CO2/hectare (tropical forest average)
+                if last_run_data.get("hectares_change"):
+                    carbon_footprint = last_run_data["hectares_change"] * 400
+                
+                # Get latest photograph from reports (prefer after_image, fallback to before_image)
+                reports = ReportQueries.get_by_run_id(last_run_data["id"])
+                for report in reports:
+                    if report["report_type"] == "after_image" and report.get("public_url"):
+                        latest_image_url = report["public_url"]
                     break
             # Fallback to before_image if no after_image
             if not latest_image_url:
@@ -143,6 +149,9 @@ def get_projects_list() -> ProjectsListResponse:
                     if report["report_type"] == "before_image" and report.get("public_url"):
                         latest_image_url = report["public_url"]
                         break
+        except Exception as e:
+            # Log but don't fail if run/report query fails
+            print(f"Warning: Could not fetch runs/reports for project {proj['id']}: {e}")
         
         projects_list.append(ProjectListItem(
             id=proj["id"],
@@ -154,7 +163,10 @@ def get_projects_list() -> ProjectsListResponse:
             active_geomarker=active_geomarker,
             last_run=last_run,
             carbon_footprint_tonnes=carbon_footprint,
-            latest_image_url=latest_image_url
+            latest_image_url=latest_image_url,
+            center_lat=proj.get("center_lat"),
+            center_lng=proj.get("center_lng"),
+            image_url=proj.get("image_url")
         ))
     
     return ProjectsListResponse(projects=projects_list)

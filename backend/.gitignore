@@ -1,6 +1,18 @@
 .venv/
+venv/
+env/
+ENV/
 .env
 __pycache__/
 *.pyc
 tmp_exports/
 
+*.pyo
+*.pyd
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.egg-info/
+dist/
+build/
