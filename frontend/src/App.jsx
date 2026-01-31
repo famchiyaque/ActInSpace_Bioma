@@ -34,6 +34,15 @@ function App() {
     ref.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const navigateToSection = (ref) => {
+    showView('landing')
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToSection(ref)
+      })
+    })
+  }
+
   useEffect(() => {
     const handleHashChange = () => {
       const rawHash = window.location.hash.replace(/^#/, '')
@@ -99,22 +108,12 @@ function App() {
             <h1>Bioma - Monitoreo Ambiental</h1>
             <div className="subtitle">Supervisión Transparente de Proyectos</div>
           </div>
-          {activeView === 'landing' ? (
-            <nav>
-              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(mapSectionRef); }}>Mapa</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(aboutSectionRef); }}>Acerca</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(featuresSectionRef); }}>Características</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection(uploadSectionRef); }}>Subir Proyecto</a>
-            </nav>
-          ) : (
-            <nav>
-              <a href="#" className={activeView === 'landing' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('landing'); }}>Inicio</a>
-              <a href="#" className={activeView === 'project' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('project'); }}>Proyecto</a>
-              <a href="#" className={activeView === 'company' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('company'); }}>Empresa</a>
-              <a href="#" className={activeView === 'region' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('region'); }}>Región</a>
-              <a href="#" className={activeView === 'report' ? 'active' : ''} onClick={(e) => { e.preventDefault(); showView('report'); }}>Reporte</a>
-            </nav>
-          )}
+          <nav>
+            <a href="#" onClick={(e) => { e.preventDefault(); navigateToSection(mapSectionRef); }}>Mapa</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); navigateToSection(aboutSectionRef); }}>Acerca</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); navigateToSection(featuresSectionRef); }}>Características</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); navigateToSection(uploadSectionRef); }}>Subir Proyecto</a>
+          </nav>
         </div>
       </header>
 
@@ -288,7 +287,7 @@ function App() {
                   </div>
                 </div>
                 <div className="footer-bottom">
-                  <p>&copy; 2024 Bioma. Todos los derechos reservados.</p>
+                  <p>&copy; 2026 Bioma. Todos los derechos reservados.</p>
                 </div>
               </div>
             </footer>
