@@ -191,7 +191,15 @@ const MexicoMap = ({ onProjectSelect, selectedProject, onProjectClose, searchQue
       // Add click handler
       el.addEventListener('click', (e) => {
         e.stopPropagation();
+        // #region agent log
+        console.log('[DEBUG] Marker clicked:', {projectId:project.id,projectName:project.name,hasOnProjectSelect:!!onProjectSelect});
+        fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'MexicoMap.jsx:193',message:'Marker clicked',data:{projectId:project.id,projectName:project.name,hasOnProjectSelect:!!onProjectSelect,hasCoordinates:project.hasCoordinates,centerLng,centerLat},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
         if (onProjectSelect) {
+          // #region agent log
+          console.log('[DEBUG] Calling onProjectSelect with project:', project.id);
+          fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'MexicoMap.jsx:197',message:'Calling onProjectSelect',data:{projectId:project.id,projectKeys:Object.keys(project)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+          // #endregion
           onProjectSelect(project);
           
           // Zoom to project

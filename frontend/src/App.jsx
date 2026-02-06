@@ -314,16 +314,40 @@ function App() {
   }, [])
 
   const handleProjectClick = async (project) => {
+    // #region agent log
+    console.log('[DEBUG] handleProjectClick called:', {projectId:project?.id,projectName:project?.name});
+    fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:317',message:'handleProjectClick called',data:{projectId:project?.id,projectName:project?.name,hasProject:!!project},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     // If project has basic info, set it immediately for UI responsiveness
     setSelectedProject(project)
+    // #region agent log
+    console.log('[DEBUG] setSelectedProject called with basic project:', project?.id);
+    fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:322',message:'setSelectedProject called with basic project',data:{projectId:project?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     
     // Then try to fetch full details from API
     if (project.id) {
       try {
+        // #region agent log
+        console.log('[DEBUG] Fetching project details from API:', project.id);
+        fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:329',message:'Fetching project details from API',data:{projectId:project.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         const projectDetail = await projectsApi.getProjectDetail(project.id)
+        // #region agent log
+        console.log('[DEBUG] API response received:', {hasProject:!!projectDetail?.project,keys:projectDetail?Object.keys(projectDetail):null});
+        fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:333',message:'API response received',data:{hasProject:!!projectDetail?.project,projectKeys:projectDetail?Object.keys(projectDetail):null},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         const transformedProject = transformProjectData(projectDetail)
         setSelectedProject(transformedProject)
+        // #region agent log
+        console.log('[DEBUG] setSelectedProject called with full details:', transformedProject?.id);
+        fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:338',message:'setSelectedProject called with full details',data:{projectId:transformedProject?.id,hasWorkZone:!!transformedProject?.workZone},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
       } catch (error) {
+        // #region agent log
+        console.log('[DEBUG] API error caught:', error.message);
+        fetch('http://127.0.0.1:7242/ingest/2bd3be49-ce5c-46ed-ae15-819c88cc1beb',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:342',message:'API error caught',data:{errorMessage:error.message},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         console.warn('Failed to fetch full project details:', error.message)
         // Keep the basic project info that was already set
       }
