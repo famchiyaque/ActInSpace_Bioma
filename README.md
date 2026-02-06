@@ -6,11 +6,11 @@
 
 ## Overview
 
-> 🚀 **Hackathon Project** — Originally developed during **ActInSpace 2026**, this project is still under active development and may receive future updates and improvements.
+**Hackathon Project** — Originally developed during **ActInSpace 2026**, this project is still under active development and may receive future updates and improvements.
 
 **MONVI** (Monitoreo de Vigilancia Ambiental) is an environmental monitoring system designed to track construction projects across Mexico and ensure compliance with environmental regulations. By leveraging satellite imagery and predictive AI models, MONVI provides authorities, companies, and citizens with transparent data about construction activities and their environmental impact.
 
-### Key Capabilities
+### Key and future Capabilities
 
 - 🛰️ **Satellite Image Analysis** — Compare before/after imagery to detect land use changes
 - 🗺️ **Interactive Mapping** — Visualize all monitored projects on an interactive map of Mexico
@@ -101,7 +101,7 @@ The frontend will be available at `http://localhost:5173`
 
 ---
 
-## 🤖 AI Risk Model
+## Risk Model
 
 MONVI uses a weighted risk scoring system that considers multiple variables:
 
@@ -150,19 +150,16 @@ MONVI uses a weighted risk scoring system that considers multiple variables:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
-- **[FastAPI](https://fastapi.tiangolo.com/)** — Modern Python web framework
-- **[Supabase](https://supabase.com/)** — PostgreSQL database with real-time subscriptions
-- **[Pydantic](https://docs.pydantic.dev/)** — Data validation and settings management
-- **[Uvicorn](https://www.uvicorn.org/)** — ASGI server
+- **FastAPI** — Modern Python web framework
+- **Supabase** — PostgreSQL database with real-time subscriptions
 
 ### Frontend
-- **[React 19](https://react.dev/)** — UI component library
-- **[Vite 7](https://vitejs.dev/)** — Next-generation build tool
-- **[Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/)** — Interactive map visualization
-- **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
+- **React 19** — UI component library
+- **Vite 7** — Next-generation build tool
+- **Mapbox GL** — Interactive map visualization
 
 ---
 
@@ -179,12 +176,15 @@ MONVI was created to address the critical need for environmental oversight in co
 
 ## License & Status
 
-This project was originally developed during the **ActInSpace 2026** hackathon to address **Challenge CNES #6: Green Space: Protecting forests from above**.
+This project was originally developed during the **ActInSpace 2026** hackathon to address **Challenge CNES #6 Green Space: Protecting forests from above**.
 
 ⚠️ **Development Status**: This is a hackathon prototype that is still in possible development. Features may be incomplete, and the codebase may undergo significant changes. Contributions and feedback are welcome!
 
 ---
 
-## 👥 Team
+## Team
 
-Built with 💚 for a sustainable Mexico.
+- @famchiyaque
+- @Berthou05
+- @eduardo-hdez
+- Roberto Hernández Amezola
